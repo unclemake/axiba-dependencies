@@ -1,0 +1,33 @@
+？ match
+√ match
+
+？ clearPathParameter
+√ clearPathParameter
+
+？ clearPath
+√ clearPath
+
+？ addAlias
+√ addAlias
+
+？ addParserRegExp
+√ addParserRegExp
+
+？ getDependent
+√ getDependent
+
+？ src
+√ src
+
+？ getDependentArr
+× getDependentArr
+
+
+全部:8  通过:7 未通过: 1
+
+----错误----
+getDependentArr
+2: TypeError: assets/components/global/styles/qikexiu/index.less is not a function
+----错误----
+
+______________________________  

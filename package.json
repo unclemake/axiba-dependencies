@@ -1,0 +1,33 @@
+{
+  "name": "axiba-dependencies",
+  "version": "1.0.1",
+  "description": "",
+  "typings": "src/index.ts",
+  "main": "src/index.js",
+  "devDependencies": {
+    "axiba-unit-test": "^1.0.11",
+    "axiba-util": "^1.0.10",
+    "gulp": "^3.9.1",
+    "gulp-jsdoc3": "^0.3.0",
+    "gulp-sourcemaps": "^2.1.1",
+    "gulp-typescript": "^2.13.6"
+  },
+  "dependencies": {
+    "gulp": "^3.9.1",
+    "md5": "^2.1.0"
+  },
+  "scripts": {
+    "start": "gulp",
+    "test": "node test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unclemake/axiba-dependencies.git"
+  },
+  "author": "unclemake",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/unclemake/axiba-dependencies/issues"
+  },
+  "homepage": "https://github.com/unclemake/axiba-dependencies#readme"
+}
