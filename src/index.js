@@ -60,7 +60,7 @@ exports.default = new class AxibaDependent {
      * @param  {string='./dependent.json'} path
      * @returns Promise
      */
-    createJsonFile(path = './dependent.json') {
+    createJsonFile(path = process.cwd() + '/dependent.json') {
         return new Promise((resolve, reject) => {
             fs.writeFile(path, JSON.stringify(this.dependentList), 'utf8', () => {
                 console.log('依赖json文件生成成功！');
@@ -138,13 +138,12 @@ exports.default = new class AxibaDependent {
         });
         depArr = depArr.map(value => {
             value = this.clearPath(value);
-            if (value.indexOf("_sidebar") != -1) {
-                let a1 = 1;
-            }
+            //join路径            
             if (value.indexOf('/') != -1 || !dependentConfig.haveAlias) {
                 value = this.clearPath(ph.join(ph.dirname(file.path), value));
+                //补后缀
                 if (dependentConfig.completionExtname) {
-                    value = ph.extname(value) ? value : value + dependentConfig.extname;
+                    value = ph.extname(value) && !!this.confing.find(val => val.extname === ph.extname(value)) ? value : value + dependentConfig.extname;
                 }
             }
             return value;

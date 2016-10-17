@@ -1,6 +1,6 @@
 {
   "name": "axiba-dependencies",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "typings": "src/index.ts",
   "main": "src/index.js",
@@ -13,6 +13,11 @@
     "gulp-typescript": "^2.13.6"
   },
   "dependencies": {
+    "@types/gulp": "^3.8.32",
+    "@types/gulp-util": "^3.0.29",
+    "@types/md5": "^2.1.31",
+    "@types/node": "^6.0.45",
+    "@types/through2": "^2.0.31",
     "gulp": "^3.9.1",
     "md5": "^2.1.0"
   },

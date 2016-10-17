@@ -20,14 +20,8 @@
 √ src
 
 ？ getDependentArr
-× getDependentArr
+√ getDependentArr
 
 
-全部:8  通过:7 未通过: 1
-
-----错误----
-getDependentArr
-2: TypeError: assets/components/global/styles/qikexiu/index.less is not a function
-----错误----
-
+全部:8  通过:8 未通过: 0
 ______________________________  

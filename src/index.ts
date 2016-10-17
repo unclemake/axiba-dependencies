@@ -9,7 +9,7 @@ import md5 = require('md5');
 declare let require: any;
 let json;
 try {
-    json = require(process.cwd() + '/dependent.json');
+    json = require(process.cwd() + '/dependencies.json');
 } catch (error) {
     json = [];
 }
@@ -17,7 +17,7 @@ try {
 /** 
 * 依赖数据模型
 */
-export interface DependentType {
+export interface DependenciesModel {
     //文件路径
     path: string
     //文件依赖
@@ -31,7 +31,7 @@ export interface DependentType {
 /** 
  * 配置
  */
-export interface DependentConfig {
+export interface DependenciesConfig {
 
     /**
     * 后缀名
@@ -61,12 +61,12 @@ export interface DependentConfig {
 /**
  * 依赖
  */
-export default new class AxibaDependent {
+export default new class AxibaDependencies {
 
     /** 
     * 配置
     */
-    confing: DependentConfig[] = [
+    confing: DependenciesConfig[] = [
         {
             extname: '.less',
             parserRegExpList: [{
@@ -91,19 +91,19 @@ export default new class AxibaDependent {
     /** 
     * 临时依赖列表
     */
-    dependentList: DependentType[] = json
+    dependenciesList: DependenciesModel[] = json
 
 
     /**
     * 根据glob路径 扫描依赖
     * @param glob
     */
-    src(glob: string | string[]): Promise<DependentType[]> {
+    src(glob: string | string[]): Promise<DependenciesModel[]> {
         return new Promise((resolve, reject) => {
             gulp.src(glob)
                 .pipe(this.getReadWriteStream())
                 .on('finish', () => {
-                    resolve(this.dependentList);
+                    resolve(this.dependenciesList);
                 });
         })
     }
@@ -112,12 +112,12 @@ export default new class AxibaDependent {
 
     /**
      * 生成依赖json文件
-     * @param  {string='./dependent.json'} path
+     * @param  {string='./dependencies.json'} path
      * @returns Promise
      */
-    createJsonFile(path: string = './dependent.json'): Promise<boolean> {
+    createJsonFile(path: string = process.cwd() + '/dependencies.json'): Promise<boolean> {
         return new Promise((resolve, reject) => {
-            fs.writeFile(path, JSON.stringify(this.dependentList), 'utf8', () => {
+            fs.writeFile(path, JSON.stringify(this.dependenciesList), 'utf8', () => {
                 console.log('依赖json文件生成成功！');
                 resolve();
             });
@@ -128,22 +128,22 @@ export default new class AxibaDependent {
     /**
      * 添加到临时依赖列表
      */
-    private getReadWriteStream(): NodeJS.ReadWriteStream {
+    getReadWriteStream(): NodeJS.ReadWriteStream {
         return through.obj((file: gulpUtil.File, enc, callback) => {
-            let dependentType = this.getDependent(file);
+            let DependenciesModel = this.getDependencies(file);
 
-            if (!dependentType) {
+            if (!DependenciesModel) {
                 return callback();
             }
 
-            let dep = this.dependentList.find(value => {
+            let dep = this.dependenciesList.find(value => {
                 return value.path == this.clearPath(file.path)
             });
 
             if (dep) {
-                dep.dep = dependentType.dep;
+                dep.dep = DependenciesModel.dep;
             } else {
-                this.dependentList.push(dependentType);
+                this.dependenciesList.push(DependenciesModel);
             }
 
             callback();
@@ -153,33 +153,33 @@ export default new class AxibaDependent {
 
 
 
-    /** 记录getDependentArr编列获取了哪些path 防止死循环 */
-    recordGetDependentPath: Array<string>;
+    /** 记录getDependenciesArr编列获取了哪些path 防止死循环 */
+    recordGetDependenciesPath: Array<string>;
     /**
      * 根据路劲获取依赖数组
      * @param  {string} path 路劲
      * @param  {boolean} bl 是否是首个路劲
      * @returns string[]
      */
-    getDependentArr(path: string, bl = true): string[] {
-        bl && (this.recordGetDependentPath = []);
+    getDependenciesArr(path: string, bl = true): string[] {
+        bl && (this.recordGetDependenciesPath = []);
 
         // 如果已经查找过 跳出
-        if (this.recordGetDependentPath.find(value => value == path)) {
+        if (this.recordGetDependenciesPath.find(value => value == path)) {
             return [];
         }
 
-        this.recordGetDependentPath.push(path);
+        this.recordGetDependenciesPath.push(path);
         path = this.clearPath(path);
         let depArr = [];
 
-        let depObject = this.dependentList.find(value => value.path == path);
+        let depObject = this.dependenciesList.find(value => value.path == path);
 
         if (depObject) {
             depArr = depArr.concat(depObject.dep);
             for (let key in depObject.dep) {
                 let element = depObject.dep[key];
-                depArr = depArr.concat(this.getDependentArr(element, false));
+                depArr = depArr.concat(this.getDependenciesArr(element, false));
             }
         }
 
@@ -193,19 +193,19 @@ export default new class AxibaDependent {
      * 根据文件流获取依赖
      * @param stream nodejs文件流
      */
-    getDependent(file: gulpUtil.File): DependentType {
+    getDependencies(file: gulpUtil.File): DependenciesModel {
         file.extname = ph.extname(file.path);
-        let dependentConfig = this.confing.find(value => {
+        let dependenciesConfig = this.confing.find(value => {
             let extnameAlias = value.extnameAlias && value.extnameAlias.find(value => value == file.extname);
             return value.extname == file.extname || !!extnameAlias;
         });
 
-        if (!dependentConfig) return;
+        if (!dependenciesConfig) return;
 
         let content = file.contents.toString();
         let depArr: string[] = [];
 
-        dependentConfig.parserRegExpList.forEach(value => {
+        dependenciesConfig.parserRegExpList.forEach(value => {
             let match = value.match.split('$').filter(value => !!value).map(value => Number(value));
             let path = this.match(content, value.regExp, match);
             depArr = depArr.concat(path);
@@ -214,15 +214,14 @@ export default new class AxibaDependent {
         depArr = depArr.map(value => {
             value = this.clearPath(value);
 
-            if (value.indexOf("_sidebar") != -1) {
-                let a1 = 1;
-            }
 
-            if (value.indexOf('/') != -1 || !dependentConfig.haveAlias) {
+            //join路径            
+            if (value.indexOf('/') != -1 || !dependenciesConfig.haveAlias) {
                 value = this.clearPath(ph.join(ph.dirname(file.path), value));
 
-                if (dependentConfig.completionExtname) {
-                    value = ph.extname(value) != dependentConfig.extname ? value : value + dependentConfig.extname;
+                //补后缀
+                if (dependenciesConfig.completionExtname) {
+                    value = ph.extname(value) && !!this.confing.find(val => val.extname === ph.extname(value)) ? value : value + dependenciesConfig.extname;
                 }
             }
             return value;
@@ -265,10 +264,10 @@ export default new class AxibaDependent {
      * @param match 匹配 $1$2
      */
     addParserRegExp(extname: string, regExp: RegExp, match?: string): void {
-        let dependentConfig = this.confing.find(value => value.extname == extname);
+        let dependenciesConfig = this.confing.find(value => value.extname == extname);
 
-        if (dependentConfig) {
-            dependentConfig.parserRegExpList.push({
+        if (dependenciesConfig) {
+            dependenciesConfig.parserRegExpList.push({
                 regExp: regExp,
                 match: match
             });
@@ -291,11 +290,11 @@ export default new class AxibaDependent {
      * @param alias 别名
      */
     addAlias(extname: string, alias: string): void {
-        let dependentConfig = this.confing.find(value => value.extname == extname);
+        let dependenciesConfig = this.confing.find(value => value.extname == extname);
 
-        if (dependentConfig) {
-            dependentConfig.extnameAlias = dependentConfig.extnameAlias || [];
-            dependentConfig.extnameAlias.push(alias);
+        if (dependenciesConfig) {
+            dependenciesConfig.extnameAlias = dependenciesConfig.extnameAlias || [];
+            dependenciesConfig.extnameAlias.push(alias);
         } else {
             this.confing.push({
                 extname: extname,

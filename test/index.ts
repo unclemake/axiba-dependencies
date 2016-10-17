@@ -1,9 +1,9 @@
 ﻿import { TestModule, TestUnit, describe, describeClass, its, run, it, itAdd, itClass } from 'axiba-unit-test';
-import dependent from '../src/index';
+import Dependencies from '../src/index';
 import * as gulpUtil from '../src/index';
 import Vinyl = require('vinyl');
 
-dependent.dependentList = [
+Dependencies.DependenciesList = [
     {
         "path": "assets/pages/msgset/index.less",
         "dep": [
@@ -391,7 +391,7 @@ dependent.dependentList = [
     }
 ]
 
-describeClass('依赖分析', dependent, () => {
+describeClass('依赖分析', Dependencies, () => {
     itClass('match', () => {
         itAdd(['1234567891033', /(1)(2)(3)(4)(5)(6)(7)(8)(9)(10)/g, [2]], value => value.length == 1);
         itAdd(['require("md5")', /(require\(")(md5)("\))/g, [2]], value => value[0] == 'md5');
@@ -413,7 +413,7 @@ describeClass('依赖分析', dependent, () => {
 
 
     itClass('addAlias', () => {
-        itAdd(['.less', '_less'], value => dependent.confing.find(value => value.extname == '.less').extnameAlias[0] == '_less');
+        itAdd(['.less', '_less'], value => Dependencies.confing.find(value => value.extname == '.less').extnameAlias[0] == '_less');
     });
 
 
@@ -421,32 +421,47 @@ describeClass('依赖分析', dependent, () => {
         let reg = /@import (['"])(.+?)(['"])/g;
 
         itAdd(['.less', reg, '$2'], value => {
-            let config = dependent.confing.find(value => value.extname == '.less')
+            let config = Dependencies.confing.find(value => value.extname == '.less')
             return config.parserRegExpList.find(value => value.match == '$2');
         });
 
         reg = /(@import) +(['"])(.+?)(['"])/g;
         itAdd(['.less', reg, '$3'], value => {
-            let config = dependent.confing.find(value => value.extname == '.less')
+            let config = Dependencies.confing.find(value => value.extname == '.less')
             return config.parserRegExpList.find(value => value.regExp == reg && value.match == '$3');
         });
     });
 
 
-    itClass('getDependent', () => {
-        let jsFile = new Vinyl({
+    itClass('getDependencies', () => {
+        let lessFile = new Vinyl({
             cwd: '/',
             base: '/test/',
             path: '/test/file.less',
             contents: new Buffer('@import "a1";@import \'a2\'')
         });
 
-        itAdd([jsFile], value => {
+        itAdd([lessFile], value => {
             return !!value.dep.find(value => value == "/test/a1.less");
         });
 
-        itAdd([jsFile], value => {
+        itAdd([lessFile], value => {
             return !!value.dep.find(value => value == "/test/a2.less");
+        });
+
+        let jsFile = new Vinyl({
+            cwd: '/',
+            base: '/test/',
+            path: '/test/ddd.js',
+            contents: new Buffer("require('./testLess.less');require('./aaaa.ddd');")
+        });
+
+        itAdd([jsFile], value => {
+            return !!value.dep.find(value => value == "/test/aaaa.ddd.js");
+        });
+
+         itAdd([jsFile], value => {
+            return !!value.dep.find(value => value == "/test/testLess.less");
         });
 
     });
@@ -454,19 +469,19 @@ describeClass('依赖分析', dependent, () => {
     itClass('src', () => {
 
         itAdd(['assets/**/*.*'], value => {
-            dependent.createJsonFile();
+            Dependencies.createJsonFile();
             return true;
         }, 900000);
 
 
 
         // itAdd(['assets/**/*.less'], value => {
-        //     dependent.createJsonFile();
-        //     return dependent.dependentList.length != 0;
+        //     Dependencies.createJsonFile();
+        //     return Dependencies.DependenciesList.length != 0;
         // }, 900000);
     });
 
-    itClass('getDependentArr', () => {
+    itClass('getDependenciesArr', () => {
         itAdd(["assets/pages/msgset/index.less"], value => {
             return value.length == 1
         });

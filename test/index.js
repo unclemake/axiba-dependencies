@@ -421,17 +421,29 @@ axiba_unit_test_1.describeClass('依赖分析', index_1.default, () => {
         });
     });
     axiba_unit_test_1.itClass('getDependent', () => {
-        let jsFile = new Vinyl({
+        let lessFile = new Vinyl({
             cwd: '/',
             base: '/test/',
             path: '/test/file.less',
             contents: new Buffer('@import "a1";@import \'a2\'')
         });
-        axiba_unit_test_1.itAdd([jsFile], value => {
+        axiba_unit_test_1.itAdd([lessFile], value => {
             return !!value.dep.find(value => value == "/test/a1.less");
         });
-        axiba_unit_test_1.itAdd([jsFile], value => {
+        axiba_unit_test_1.itAdd([lessFile], value => {
             return !!value.dep.find(value => value == "/test/a2.less");
+        });
+        let jsFile = new Vinyl({
+            cwd: '/',
+            base: '/test/',
+            path: '/test/ddd.js',
+            contents: new Buffer("require('./testLess.less');require('./aaaa.ddd');")
+        });
+        axiba_unit_test_1.itAdd([jsFile], value => {
+            return !!value.dep.find(value => value == "/test/aaaa.ddd.js");
+        });
+        axiba_unit_test_1.itAdd([jsFile], value => {
+            return !!value.dep.find(value => value == "/test/testLess.less");
         });
     });
     axiba_unit_test_1.itClass('src', () => {
