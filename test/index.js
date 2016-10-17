@@ -2,7 +2,7 @@
 const axiba_unit_test_1 = require('axiba-unit-test');
 const index_1 = require('../src/index');
 const Vinyl = require('vinyl');
-index_1.default.dependentList = [
+index_1.default.dependenciesList = [
     {
         "path": "assets/pages/msgset/index.less",
         "dep": [
@@ -420,7 +420,7 @@ axiba_unit_test_1.describeClass('依赖分析', index_1.default, () => {
             return config.parserRegExpList.find(value => value.regExp == reg && value.match == '$3');
         });
     });
-    axiba_unit_test_1.itClass('getDependent', () => {
+    axiba_unit_test_1.itClass('getDependencies', () => {
         let lessFile = new Vinyl({
             cwd: '/',
             base: '/test/',
@@ -452,11 +452,11 @@ axiba_unit_test_1.describeClass('依赖分析', index_1.default, () => {
             return true;
         }, 900000);
         // itAdd(['assets/**/*.less'], value => {
-        //     dependent.createJsonFile();
-        //     return dependent.dependentList.length != 0;
+        //     Dependencies.createJsonFile();
+        //     return Dependencies.DependenciesList.length != 0;
         // }, 900000);
     });
-    axiba_unit_test_1.itClass('getDependentArr', () => {
+    axiba_unit_test_1.itClass('getDependenciesArr', () => {
         axiba_unit_test_1.itAdd(["assets/pages/msgset/index.less"], value => {
             return value.length == 1;
         });

@@ -3,7 +3,7 @@ import Dependencies from '../src/index';
 import * as gulpUtil from '../src/index';
 import Vinyl = require('vinyl');
 
-Dependencies.DependenciesList = [
+Dependencies.dependenciesList = [
     {
         "path": "assets/pages/msgset/index.less",
         "dep": [
@@ -472,8 +472,6 @@ describeClass('依赖分析', Dependencies, () => {
             Dependencies.createJsonFile();
             return true;
         }, 900000);
-
-
 
         // itAdd(['assets/**/*.less'], value => {
         //     Dependencies.createJsonFile();

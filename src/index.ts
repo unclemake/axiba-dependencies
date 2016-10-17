@@ -101,7 +101,7 @@ export default new class AxibaDependencies {
     src(glob: string | string[]): Promise<DependenciesModel[]> {
         return new Promise((resolve, reject) => {
             gulp.src(glob)
-                .pipe(this.getReadWriteStream())
+                .pipe(this.readWriteStream())
                 .on('finish', () => {
                     resolve(this.dependenciesList);
                 });
@@ -126,31 +126,59 @@ export default new class AxibaDependencies {
 
 
     /**
-     * 添加到临时依赖列表
+     * 数据流 分析
      */
-    getReadWriteStream(): NodeJS.ReadWriteStream {
+    readWriteStream(): NodeJS.ReadWriteStream {
         return through.obj((file: gulpUtil.File, enc, callback) => {
-            let DependenciesModel = this.getDependencies(file);
+            let dependenciesModel = this.getDependencies(file);
 
-            if (!DependenciesModel) {
+            // 没有此文件后缀的匹配会跳出
+            if (!dependenciesModel) {
                 return callback();
             }
 
-            let dep = this.dependenciesList.find(value => {
+            let depObjectOld = this.dependenciesList.find(value => {
                 return value.path == this.clearPath(file.path)
             });
 
-            if (dep) {
-                dep.dep = DependenciesModel.dep;
+
+            if (depObjectOld) {
+                depObjectOld.dep.forEach(value => this.delBeDep(value, dependenciesModel.path));
+                depObjectOld.dep = dependenciesModel.dep;
+                depObjectOld.md5 = dependenciesModel.md5;
             } else {
-                this.dependenciesList.push(DependenciesModel);
+                this.dependenciesList.push(dependenciesModel);
             }
 
+            dependenciesModel.dep.forEach(value => this.addBeDep(value, dependenciesModel.path));
             callback();
 
         });
     }
 
+
+    delBeDep(path: string, beDep: string) {
+        let depObject = this.dependenciesList.find(value => value.path == path);
+
+        if (depObject) {
+            depObject.beDep = depObject.beDep.filter(value => value !== beDep);
+        }
+    }
+
+    addBeDep(path: string, beDep: string) {
+        let depObject = this.dependenciesList.find(value => value.path == path);
+
+        if (depObject) {
+            depObject.beDep.find(value => value == beDep) || depObject.beDep.push(beDep);
+        } else {
+            this.dependenciesList.push({
+                path: path,
+                beDep: [beDep],
+                dep: [],
+                md5: ''
+            })
+        }
+    }
 
 
     /** 记录getDependenciesArr编列获取了哪些path 防止死循环 */

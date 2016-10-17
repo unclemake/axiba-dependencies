@@ -13,14 +13,14 @@
 ？ addParserRegExp
 √ addParserRegExp
 
-？ getDependent
-√ getDependent
+？ getDependencies
+√ getDependencies
 
 ？ src
 √ src
 
-？ getDependentArr
-√ getDependentArr
+？ getDependenciesArr
+√ getDependenciesArr
 
 
 全部:8  通过:8 未通过: 0

@@ -6,13 +6,13 @@ const fs = require('fs');
 const md5 = require('md5');
 let json;
 try {
-    json = require(process.cwd() + '/dependent.json');
+    json = require(process.cwd() + '/dependencies.json');
 }
 catch (error) {
     json = [];
 }
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = new class AxibaDependent {
+exports.default = new class AxibaDependencies {
     constructor() {
         /**
         * 配置
@@ -40,7 +40,7 @@ exports.default = new class AxibaDependent {
         /**
         * 临时依赖列表
         */
-        this.dependentList = json;
+        this.dependenciesList = json;
     }
     /**
     * 根据glob路径 扫描依赖
@@ -49,45 +49,69 @@ exports.default = new class AxibaDependent {
     src(glob) {
         return new Promise((resolve, reject) => {
             gulp.src(glob)
-                .pipe(this.getReadWriteStream())
+                .pipe(this.readWriteStream())
                 .on('finish', () => {
-                resolve(this.dependentList);
+                resolve(this.dependenciesList);
             });
         });
     }
     /**
      * 生成依赖json文件
-     * @param  {string='./dependent.json'} path
+     * @param  {string='./dependencies.json'} path
      * @returns Promise
      */
-    createJsonFile(path = process.cwd() + '/dependent.json') {
+    createJsonFile(path = process.cwd() + '/dependencies.json') {
         return new Promise((resolve, reject) => {
-            fs.writeFile(path, JSON.stringify(this.dependentList), 'utf8', () => {
+            fs.writeFile(path, JSON.stringify(this.dependenciesList), 'utf8', () => {
                 console.log('依赖json文件生成成功！');
                 resolve();
             });
         });
     }
     /**
-     * 添加到临时依赖列表
+     * 数据流 分析
      */
-    getReadWriteStream() {
+    readWriteStream() {
         return through.obj((file, enc, callback) => {
-            let dependentType = this.getDependent(file);
-            if (!dependentType) {
+            let dependenciesModel = this.getDependencies(file);
+            // 没有此文件后缀的匹配会跳出
+            if (!dependenciesModel) {
                 return callback();
             }
-            let dep = this.dependentList.find(value => {
+            let depObjectOld = this.dependenciesList.find(value => {
                 return value.path == this.clearPath(file.path);
             });
-            if (dep) {
-                dep.dep = dependentType.dep;
+            if (depObjectOld) {
+                depObjectOld.dep.forEach(value => this.delBeDep(value, dependenciesModel.path));
+                depObjectOld.dep = dependenciesModel.dep;
+                depObjectOld.md5 = dependenciesModel.md5;
             }
             else {
-                this.dependentList.push(dependentType);
+                this.dependenciesList.push(dependenciesModel);
             }
+            dependenciesModel.dep.forEach(value => this.addBeDep(value, dependenciesModel.path));
             callback();
         });
+    }
+    delBeDep(path, beDep) {
+        let depObject = this.dependenciesList.find(value => value.path == path);
+        if (depObject) {
+            depObject.beDep = depObject.beDep.filter(value => value !== beDep);
+        }
+    }
+    addBeDep(path, beDep) {
+        let depObject = this.dependenciesList.find(value => value.path == path);
+        if (depObject) {
+            depObject.beDep.find(value => value == beDep) || depObject.beDep.push(beDep);
+        }
+        else {
+            this.dependenciesList.push({
+                path: path,
+                beDep: [beDep],
+                dep: [],
+                md5: ''
+            });
+        }
     }
     /**
      * 根据路劲获取依赖数组
@@ -95,21 +119,21 @@ exports.default = new class AxibaDependent {
      * @param  {boolean} bl 是否是首个路劲
      * @returns string[]
      */
-    getDependentArr(path, bl = true) {
-        bl && (this.recordGetDependentPath = []);
+    getDependenciesArr(path, bl = true) {
+        bl && (this.recordGetDependenciesPath = []);
         // 如果已经查找过 跳出
-        if (this.recordGetDependentPath.find(value => value == path)) {
+        if (this.recordGetDependenciesPath.find(value => value == path)) {
             return [];
         }
-        this.recordGetDependentPath.push(path);
+        this.recordGetDependenciesPath.push(path);
         path = this.clearPath(path);
         let depArr = [];
-        let depObject = this.dependentList.find(value => value.path == path);
+        let depObject = this.dependenciesList.find(value => value.path == path);
         if (depObject) {
             depArr = depArr.concat(depObject.dep);
             for (let key in depObject.dep) {
                 let element = depObject.dep[key];
-                depArr = depArr.concat(this.getDependentArr(element, false));
+                depArr = depArr.concat(this.getDependenciesArr(element, false));
             }
         }
         if (bl) {
@@ -121,17 +145,17 @@ exports.default = new class AxibaDependent {
      * 根据文件流获取依赖
      * @param stream nodejs文件流
      */
-    getDependent(file) {
+    getDependencies(file) {
         file.extname = ph.extname(file.path);
-        let dependentConfig = this.confing.find(value => {
+        let dependenciesConfig = this.confing.find(value => {
             let extnameAlias = value.extnameAlias && value.extnameAlias.find(value => value == file.extname);
             return value.extname == file.extname || !!extnameAlias;
         });
-        if (!dependentConfig)
+        if (!dependenciesConfig)
             return;
         let content = file.contents.toString();
         let depArr = [];
-        dependentConfig.parserRegExpList.forEach(value => {
+        dependenciesConfig.parserRegExpList.forEach(value => {
             let match = value.match.split('$').filter(value => !!value).map(value => Number(value));
             let path = this.match(content, value.regExp, match);
             depArr = depArr.concat(path);
@@ -139,11 +163,11 @@ exports.default = new class AxibaDependent {
         depArr = depArr.map(value => {
             value = this.clearPath(value);
             //join路径            
-            if (value.indexOf('/') != -1 || !dependentConfig.haveAlias) {
+            if (value.indexOf('/') != -1 || !dependenciesConfig.haveAlias) {
                 value = this.clearPath(ph.join(ph.dirname(file.path), value));
                 //补后缀
-                if (dependentConfig.completionExtname) {
-                    value = ph.extname(value) && !!this.confing.find(val => val.extname === ph.extname(value)) ? value : value + dependentConfig.extname;
+                if (dependenciesConfig.completionExtname) {
+                    value = ph.extname(value) && !!this.confing.find(val => val.extname === ph.extname(value)) ? value : value + dependenciesConfig.extname;
                 }
             }
             return value;
@@ -180,9 +204,9 @@ exports.default = new class AxibaDependent {
      * @param match 匹配 $1$2
      */
     addParserRegExp(extname, regExp, match) {
-        let dependentConfig = this.confing.find(value => value.extname == extname);
-        if (dependentConfig) {
-            dependentConfig.parserRegExpList.push({
+        let dependenciesConfig = this.confing.find(value => value.extname == extname);
+        if (dependenciesConfig) {
+            dependenciesConfig.parserRegExpList.push({
                 regExp: regExp,
                 match: match
             });
@@ -204,10 +228,10 @@ exports.default = new class AxibaDependent {
      * @param alias 别名
      */
     addAlias(extname, alias) {
-        let dependentConfig = this.confing.find(value => value.extname == extname);
-        if (dependentConfig) {
-            dependentConfig.extnameAlias = dependentConfig.extnameAlias || [];
-            dependentConfig.extnameAlias.push(alias);
+        let dependenciesConfig = this.confing.find(value => value.extname == extname);
+        if (dependenciesConfig) {
+            dependenciesConfig.extnameAlias = dependenciesConfig.extnameAlias || [];
+            dependenciesConfig.extnameAlias.push(alias);
         }
         else {
             this.confing.push({
