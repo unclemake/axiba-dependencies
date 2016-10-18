@@ -460,7 +460,7 @@ describeClass('依赖分析', Dependencies, () => {
             return !!value.dep.find(value => value == "/test/aaaa.ddd.js");
         });
 
-         itAdd([jsFile], value => {
+        itAdd([jsFile], value => {
             return !!value.dep.find(value => value == "/test/testLess.less");
         });
 
@@ -469,7 +469,6 @@ describeClass('依赖分析', Dependencies, () => {
     itClass('src', () => {
 
         itAdd(['assets/**/*.*'], value => {
-            Dependencies.createJsonFile();
             return true;
         }, 900000);
 
@@ -481,14 +480,43 @@ describeClass('依赖分析', Dependencies, () => {
 
     itClass('getDependenciesArr', () => {
         itAdd(["assets/pages/msgset/index.less"], value => {
-            return value.length == 1
+            return value.length == 1;
         });
 
         itAdd(["assets/components/global/styles/index.less"], value => {
             return value.indexOf('assets/components/global/styles/qikexiu/index.less') != -1 && value.filter(value => value === 'assets/components/global/styles/qikexiu/index.less').length === 1;
         });
-
     })
+
+
+    itClass('getBeDependenciesArr', () => {
+        itAdd(["assets/components/global/styles/qikexiu/index.less"], value => {
+            return value.indexOf("assets/components/global/styles/index.less") > -1;
+        });
+    })
+
+
+    itClass('addBeDep', () => {
+        itAdd(["assets/pages/msgset/test.less", "assets/pages/msgset/testBe.less"], value => {
+            return Dependencies.getBeDependenciesArr("assets/pages/msgset/test.less").indexOf("assets/pages/msgset/testBe.less") > -1;
+        });
+
+        itAdd(["assets/pages/msgset/test.less", "assets/pages/msgset/testBe22.less"], value => {
+            return Dependencies.getBeDependenciesArr("assets/pages/msgset/test.less").indexOf("assets/pages/msgset/testBe.less") > -1;
+        });
+    });
+
+    itClass('delBeDep', () => {
+        itAdd(["assets/pages/msgset/test.less", "assets/pages/msgset/testBe.less"], value => {
+            return Dependencies.getBeDependenciesArr("assets/pages/msgset/test.less").indexOf("assets/pages/msgset/testBe.less") == -1;
+        });
+    });
+
+
+    itClass('createJsonFile', () => {
+        itAdd([], value => true);
+    });
+
 })
 
 

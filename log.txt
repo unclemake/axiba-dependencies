@@ -22,6 +22,18 @@
 ？ getDependenciesArr
 √ getDependenciesArr
 
+？ getBeDependenciesArr
+√ getBeDependenciesArr
 
-全部:8  通过:8 未通过: 0
+？ addBeDep
+√ addBeDep
+
+？ delBeDep
+√ delBeDep
+
+？ createJsonFile
+√ createJsonFile
+
+
+全部:12  通过:12 未通过: 0
 ______________________________  

@@ -37,10 +37,11 @@ exports.default = new class AxibaDependencies {
                 haveAlias: true
             }
         ];
+        this.extNameList = ['.less', '.js', '.css'];
         /**
         * 临时依赖列表
         */
-        this.dependenciesList = json;
+        this.dependenciesArray = json;
     }
     /**
     * 根据glob路径 扫描依赖
@@ -51,7 +52,7 @@ exports.default = new class AxibaDependencies {
             gulp.src(glob)
                 .pipe(this.readWriteStream())
                 .on('finish', () => {
-                resolve(this.dependenciesList);
+                resolve(this.dependenciesArray);
             });
         });
     }
@@ -62,8 +63,7 @@ exports.default = new class AxibaDependencies {
      */
     createJsonFile(path = process.cwd() + '/dependencies.json') {
         return new Promise((resolve, reject) => {
-            fs.writeFile(path, JSON.stringify(this.dependenciesList), 'utf8', () => {
-                console.log('依赖json文件生成成功！');
+            fs.writeFile(path, JSON.stringify(this.dependenciesArray), 'utf8', () => {
                 resolve();
             });
         });
@@ -76,36 +76,52 @@ exports.default = new class AxibaDependencies {
             let dependenciesModel = this.getDependencies(file);
             // 没有此文件后缀的匹配会跳出
             if (!dependenciesModel) {
-                return callback();
+                return callback(null, file);
             }
-            let depObjectOld = this.dependenciesList.find(value => {
-                return value.path == this.clearPath(file.path);
+            this.delByPath(dependenciesModel.path);
+            this.dependenciesArray.push(dependenciesModel);
+            dependenciesModel.dep.forEach(value => {
+                this.addBeDep(value, dependenciesModel.path);
             });
-            if (depObjectOld) {
-                depObjectOld.dep.forEach(value => this.delBeDep(value, dependenciesModel.path));
-                depObjectOld.dep = dependenciesModel.dep;
-                depObjectOld.md5 = dependenciesModel.md5;
-            }
-            else {
-                this.dependenciesList.push(dependenciesModel);
-            }
-            dependenciesModel.dep.forEach(value => this.addBeDep(value, dependenciesModel.path));
-            callback();
+            callback(null, file);
         });
     }
+    /**
+     * 根据path删除依赖
+     * @param  {string} path
+     */
+    delByPath(path) {
+        let depObjectOld = this.dependenciesArray.find(value => value.path === this.clearPath(path));
+        if (depObjectOld) {
+            depObjectOld.dep.forEach(value => this.delBeDep(value, path));
+            if (depObjectOld.beDep.length === 0) {
+                this.dependenciesArray.splice(this.dependenciesArray.findIndex(value => value === depObjectOld), 1);
+            }
+        }
+    }
+    /**
+     * 删除 path 的beDep 被依赖
+     * @param  {string} path
+     * @param  {string} beDep
+     */
     delBeDep(path, beDep) {
-        let depObject = this.dependenciesList.find(value => value.path == path);
+        let depObject = this.dependenciesArray.find(value => value.path === path);
         if (depObject) {
             depObject.beDep = depObject.beDep.filter(value => value !== beDep);
         }
     }
+    /**
+    * 添加 path 的beDep 被依赖
+    * @param  {string} path
+    * @param  {string} beDep
+    */
     addBeDep(path, beDep) {
-        let depObject = this.dependenciesList.find(value => value.path == path);
+        let depObject = this.dependenciesArray.find(value => value.path === path);
         if (depObject) {
             depObject.beDep.find(value => value == beDep) || depObject.beDep.push(beDep);
         }
         else {
-            this.dependenciesList.push({
+            this.dependenciesArray.push({
                 path: path,
                 beDep: [beDep],
                 dep: [],
@@ -128,7 +144,7 @@ exports.default = new class AxibaDependencies {
         this.recordGetDependenciesPath.push(path);
         path = this.clearPath(path);
         let depArr = [];
-        let depObject = this.dependenciesList.find(value => value.path == path);
+        let depObject = this.dependenciesArray.find(value => value.path == path);
         if (depObject) {
             depArr = depArr.concat(depObject.dep);
             for (let key in depObject.dep) {
@@ -140,6 +156,42 @@ exports.default = new class AxibaDependencies {
             return [...new Set(depArr)];
         }
         return depArr;
+    }
+    /**
+     * 根据路劲获取被依赖数组
+     * @param  {string} path 路劲
+     * @param  {boolean} bl 是否是首个路劲
+     * @returns string[]
+     */
+    getBeDependenciesArr(path, bl = true) {
+        bl && (this.recordGetBeDependenciesPath = []);
+        // 如果已经查找过 跳出
+        if (this.recordGetBeDependenciesPath.find(value => value == path)) {
+            return [];
+        }
+        this.recordGetBeDependenciesPath.push(path);
+        path = this.clearPath(path);
+        let depArr = [];
+        let depObject = this.dependenciesArray.find(value => value.path == path);
+        if (depObject) {
+            depArr = depArr.concat(depObject.beDep);
+            for (let key in depObject.beDep) {
+                let element = depObject.beDep[key];
+                depArr = depArr.concat(this.getBeDependenciesArr(element, false));
+            }
+        }
+        if (bl) {
+            return [...new Set(depArr)];
+        }
+        return depArr;
+    }
+    /**
+     * 根据path获取依赖
+     * @param path
+     */
+    getDependenciesByPath(path) {
+        path = this.clearPath(path);
+        return this.dependenciesArray.find(value => value.path === path);
     }
     /**
      * 根据文件流获取依赖
@@ -167,7 +219,7 @@ exports.default = new class AxibaDependencies {
                 value = this.clearPath(ph.join(ph.dirname(file.path), value));
                 //补后缀
                 if (dependenciesConfig.completionExtname) {
-                    value = ph.extname(value) && !!this.confing.find(val => val.extname === ph.extname(value)) ? value : value + dependenciesConfig.extname;
+                    value = ph.extname(value) && this.extNameList.indexOf(ph.extname(value)) !== -1 ? value : value + dependenciesConfig.extname;
                 }
             }
             return value;

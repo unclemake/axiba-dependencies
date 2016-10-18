@@ -448,7 +448,6 @@ axiba_unit_test_1.describeClass('依赖分析', index_1.default, () => {
     });
     axiba_unit_test_1.itClass('src', () => {
         axiba_unit_test_1.itAdd(['assets/**/*.*'], value => {
-            index_1.default.createJsonFile();
             return true;
         }, 900000);
         // itAdd(['assets/**/*.less'], value => {
@@ -463,6 +462,27 @@ axiba_unit_test_1.describeClass('依赖分析', index_1.default, () => {
         axiba_unit_test_1.itAdd(["assets/components/global/styles/index.less"], value => {
             return value.indexOf('assets/components/global/styles/qikexiu/index.less') != -1 && value.filter(value => value === 'assets/components/global/styles/qikexiu/index.less').length === 1;
         });
+    });
+    axiba_unit_test_1.itClass('getBeDependenciesArr', () => {
+        axiba_unit_test_1.itAdd(["assets/components/global/styles/qikexiu/index.less"], value => {
+            return value.indexOf("assets/components/global/styles/index.less") > -1;
+        });
+    });
+    axiba_unit_test_1.itClass('addBeDep', () => {
+        axiba_unit_test_1.itAdd(["assets/pages/msgset/test.less", "assets/pages/msgset/testBe.less"], value => {
+            return index_1.default.getBeDependenciesArr("assets/pages/msgset/test.less").indexOf("assets/pages/msgset/testBe.less") > -1;
+        });
+        axiba_unit_test_1.itAdd(["assets/pages/msgset/test.less", "assets/pages/msgset/testBe22.less"], value => {
+            return index_1.default.getBeDependenciesArr("assets/pages/msgset/test.less").indexOf("assets/pages/msgset/testBe.less") > -1;
+        });
+    });
+    axiba_unit_test_1.itClass('delBeDep', () => {
+        axiba_unit_test_1.itAdd(["assets/pages/msgset/test.less", "assets/pages/msgset/testBe.less"], value => {
+            return index_1.default.getBeDependenciesArr("assets/pages/msgset/test.less").indexOf("assets/pages/msgset/testBe.less") == -1;
+        });
+    });
+    axiba_unit_test_1.itClass('createJsonFile', () => {
+        axiba_unit_test_1.itAdd([], value => true);
     });
 });
 axiba_unit_test_1.run();
