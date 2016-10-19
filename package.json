@@ -23,7 +23,8 @@
   },
   "scripts": {
     "start": "gulp",
-    "test": "node test"
+    "test": "node test",
+    "cnpm": "npm install --registry=https://registry.npm.taobao.org"
   },
   "repository": {
     "type": "git",

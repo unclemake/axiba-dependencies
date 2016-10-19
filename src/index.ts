@@ -127,14 +127,15 @@ export default new class AxibaDependencies {
     */
     src(glob: string | string[]): Promise<DependenciesModel[]> {
         return new Promise((resolve, reject) => {
-            gulp.src(glob)
+            gulp.src(glob, {
+                base: './'
+            })
                 .pipe(this.readWriteStream())
                 .on('finish', () => {
                     resolve(this.dependenciesArray);
                 });
         })
     }
-
 
 
     /**
@@ -155,22 +156,21 @@ export default new class AxibaDependencies {
      * 数据流 分析
      */
     readWriteStream(): stream.Transform {
-        return through.obj((file: gulpUtil.File, enc, callback) => {
-            let dependenciesModel = this.getDependencies(file);
+        return through.obj(function (file: gulpUtil.File, enc, callback) {
+            // let dependenciesModel = this.getDependencies(file);
 
             // 没有此文件后缀的匹配会跳出
-            if (!dependenciesModel) {
-                return callback(null, file);
-            }
+            // if (!dependenciesModel) {
+            //     return callback(null, file);
+            // }
 
-            this.delByPath(dependenciesModel.path);
-            this.dependenciesArray.push(dependenciesModel);
-            dependenciesModel.dep.forEach(value => {
-                this.addBeDep(value, dependenciesModel.path);
-            });
-
-
-            callback(null, file);
+            // this.delByPath(dependenciesModel.path);
+            // this.dependenciesArray.push(dependenciesModel);
+            // dependenciesModel.dep.forEach(value => {
+            //     this.addBeDep(value, dependenciesModel.path);
+            // });
+            this.push(file);
+            return callback();
         });
     }
 
@@ -311,11 +311,12 @@ export default new class AxibaDependencies {
 
 
     /**
-     * 根据文件流获取依赖
+     * 根据文件流获取依赖对象
      * @param stream nodejs文件流
      */
     getDependencies(file: gulpUtil.File): DependenciesModel {
         file.extname = ph.extname(file.path);
+
         let dependenciesConfig = this.confing.find(value => {
             let extnameAlias = value.extnameAlias && value.extnameAlias.find(value => value == file.extname);
             return value.extname == file.extname || !!extnameAlias;
@@ -335,7 +336,7 @@ export default new class AxibaDependencies {
         depArr = depArr.map(value => {
             value = this.clearPath(value);
 
-            if (this.isAlias(value) && !dependenciesConfig.haveAlias) {
+            if (this.isAlias(value) && dependenciesConfig.haveAlias) {
                 return value;
             }
 
