@@ -2,7 +2,7 @@
 const axiba_unit_test_1 = require('axiba-unit-test');
 const index_1 = require('../src/index');
 const Vinyl = require('vinyl');
-index_1.default.dependenciesList = [
+index_1.default.dependenciesArray = [
     {
         "path": "assets/pages/msgset/index.less",
         "dep": [
@@ -408,6 +408,11 @@ axiba_unit_test_1.describeClass('依赖分析', index_1.default, () => {
     axiba_unit_test_1.itClass('addAlias', () => {
         axiba_unit_test_1.itAdd(['.less', '_less'], value => index_1.default.confing.find(value => value.extname == '.less').extnameAlias[0] == '_less');
     });
+    axiba_unit_test_1.itClass('isAlias', () => {
+        axiba_unit_test_1.itAdd(['sss.less'], value => !value);
+        axiba_unit_test_1.itAdd(['react'], value => value);
+        axiba_unit_test_1.itAdd(['react-deadf'], value => value);
+    });
     axiba_unit_test_1.itClass('addParserRegExp', () => {
         let reg = /@import (['"])(.+?)(['"])/g;
         axiba_unit_test_1.itAdd(['.less', reg, '$2'], value => {
@@ -445,11 +450,23 @@ axiba_unit_test_1.describeClass('依赖分析', index_1.default, () => {
         axiba_unit_test_1.itAdd([jsFile], value => {
             return !!value.dep.find(value => value == "/test/testLess.less");
         });
+        let tsFile = new Vinyl({
+            cwd: '/',
+            base: '/test/',
+            path: '/test/ddd.ts',
+            contents: new Buffer("import 'test.less';import 'gulp';")
+        });
+        axiba_unit_test_1.itAdd([tsFile], value => {
+            return !!value.dep.find(value => value == "/test/test.less");
+        });
+        axiba_unit_test_1.itAdd([tsFile], value => {
+            return !!value.dep.find(value => value == "gulp");
+        });
     });
     axiba_unit_test_1.itClass('src', () => {
-        axiba_unit_test_1.itAdd(['assets/**/*.*'], value => {
-            return true;
-        }, 900000);
+        // itAdd(['assets/**/*.*'], value => {
+        //     return true;
+        // }, 900000);
         // itAdd(['assets/**/*.less'], value => {
         //     Dependencies.createJsonFile();
         //     return Dependencies.DependenciesList.length != 0;

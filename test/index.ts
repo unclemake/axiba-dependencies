@@ -3,7 +3,7 @@ import Dependencies from '../src/index';
 import * as gulpUtil from '../src/index';
 import Vinyl = require('vinyl');
 
-Dependencies.dependenciesList = [
+Dependencies.dependenciesArray = [
     {
         "path": "assets/pages/msgset/index.less",
         "dep": [
@@ -416,6 +416,12 @@ describeClass('依赖分析', Dependencies, () => {
         itAdd(['.less', '_less'], value => Dependencies.confing.find(value => value.extname == '.less').extnameAlias[0] == '_less');
     });
 
+    itClass('isAlias', () => {
+        itAdd(['sss.less'], value => !value);
+        itAdd(['react'], value => value);
+        itAdd(['react-deadf'], value => value);
+    });
+
 
     itClass('addParserRegExp', () => {
         let reg = /@import (['"])(.+?)(['"])/g;
@@ -464,13 +470,29 @@ describeClass('依赖分析', Dependencies, () => {
             return !!value.dep.find(value => value == "/test/testLess.less");
         });
 
+
+        let tsFile = new Vinyl({
+            cwd: '/',
+            base: '/test/',
+            path: '/test/ddd.ts',
+            contents: new Buffer("import 'test.less';import 'gulp';")
+        });
+
+        itAdd([tsFile], value => {
+            return !!value.dep.find(value => value == "/test/test.less");
+        });
+
+        itAdd([tsFile], value => {
+            return !!value.dep.find(value => value == "gulp");
+        });
+
     });
 
     itClass('src', () => {
 
-        itAdd(['assets/**/*.*'], value => {
-            return true;
-        }, 900000);
+        // itAdd(['assets/**/*.*'], value => {
+        //     return true;
+        // }, 900000);
 
         // itAdd(['assets/**/*.less'], value => {
         //     Dependencies.createJsonFile();

@@ -27,6 +27,21 @@ exports.default = new class AxibaDependencies {
                 completionExtname: true
             },
             {
+                extname: '.ts',
+                parserRegExpList: [{
+                        regExp: /require\(["'](.+?)['"]/g,
+                        match: '$1'
+                    }, {
+                        regExp: /import .+ from +["'](.+?)["']/g,
+                        match: '$1'
+                    }, {
+                        regExp: /import +["'](.+?)["']/g,
+                        match: '$1'
+                    }],
+                completionExtname: true,
+                haveAlias: true
+            },
+            {
                 extname: '.js',
                 parserRegExpList: [{
                         regExp: /require\(["'](.+?)['"]/g,
@@ -37,11 +52,19 @@ exports.default = new class AxibaDependencies {
                 haveAlias: true
             }
         ];
-        this.extNameList = ['.less', '.js', '.css'];
+        this.extNameList = ['.less', '.js', '.css', '.ts'];
         /**
         * 临时依赖列表
         */
         this.dependenciesArray = json;
+    }
+    /**
+       * 判断是否是别名路径
+       * @param  {string} path
+       */
+    isAlias(path) {
+        let extname = ph.extname(path);
+        return !path.match(/[\/\.]/g) && this.extNameList.indexOf(extname) === -1;
     }
     /**
     * 根据glob路径 扫描依赖
@@ -214,13 +237,18 @@ exports.default = new class AxibaDependencies {
         });
         depArr = depArr.map(value => {
             value = this.clearPath(value);
-            //join路径            
-            if (value.indexOf('/') != -1 || !dependenciesConfig.haveAlias) {
+            if (this.isAlias(value) && !dependenciesConfig.haveAlias) {
+                return value;
+            }
+            if (dependenciesConfig.haveAlias && /[^\.\/]/g.test(value[0])) {
+                value = this.clearPath(ph.join('node_modules/', value));
+            }
+            else {
                 value = this.clearPath(ph.join(ph.dirname(file.path), value));
-                //补后缀
-                if (dependenciesConfig.completionExtname) {
-                    value = ph.extname(value) && this.extNameList.indexOf(ph.extname(value)) !== -1 ? value : value + dependenciesConfig.extname;
-                }
+            }
+            //补后缀
+            if (dependenciesConfig.completionExtname) {
+                value = ph.extname(value) && this.extNameList.indexOf(ph.extname(value)) !== -1 ? value : value + dependenciesConfig.extname;
             }
             return value;
         });
