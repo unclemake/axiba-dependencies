@@ -96,20 +96,18 @@ exports.default = new class AxibaDependencies {
     /**
      * 数据流 分析
      */
-    readWriteStream() {
-        return through.obj(function (file, enc, callback) {
-            // let dependenciesModel = this.getDependencies(file);
-            // 没有此文件后缀的匹配会跳出
-            // if (!dependenciesModel) {
-            //     return callback(null, file);
-            // }
-            // this.delByPath(dependenciesModel.path);
-            // this.dependenciesArray.push(dependenciesModel);
-            // dependenciesModel.dep.forEach(value => {
-            //     this.addBeDep(value, dependenciesModel.path);
-            // });
-            this.push(file);
-            return callback();
+    readWriteStream(isCb = false) {
+        return through.obj((file, enc, callback) => {
+            let dependenciesModel = this.getDependencies(file);
+            if (!dependenciesModel) {
+                return isCb ? callback(null, file) : callback();
+            }
+            this.delByPath(dependenciesModel.path);
+            this.dependenciesArray.push(dependenciesModel);
+            dependenciesModel.dep.forEach(value => {
+                this.addBeDep(value, dependenciesModel.path);
+            });
+            return isCb ? callback(null, file) : callback();
         });
     }
     /**

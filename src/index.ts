@@ -155,22 +155,21 @@ export default new class AxibaDependencies {
     /**
      * 数据流 分析
      */
-    readWriteStream(): stream.Transform {
-        return through.obj(function (file: gulpUtil.File, enc, callback) {
-            // let dependenciesModel = this.getDependencies(file);
+    readWriteStream(isCb = false): stream.Transform {
+        return through.obj((file: gulpUtil.File, enc, callback) => {
+            let dependenciesModel = this.getDependencies(file);
 
-            // 没有此文件后缀的匹配会跳出
-            // if (!dependenciesModel) {
-            //     return callback(null, file);
-            // }
+            if (!dependenciesModel) {
+                return isCb ? callback(null, file) : callback();
+            }
 
-            // this.delByPath(dependenciesModel.path);
-            // this.dependenciesArray.push(dependenciesModel);
-            // dependenciesModel.dep.forEach(value => {
-            //     this.addBeDep(value, dependenciesModel.path);
-            // });
-            this.push(file);
-            return callback();
+            this.delByPath(dependenciesModel.path);
+            this.dependenciesArray.push(dependenciesModel);
+            dependenciesModel.dep.forEach(value => {
+                this.addBeDep(value, dependenciesModel.path);
+            });
+
+            return isCb ? callback(null, file) : callback();
         });
     }
 

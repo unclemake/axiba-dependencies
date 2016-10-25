@@ -1,48 +1,6 @@
-？ match
-√ match
-
-？ clearPathParameter
-√ clearPathParameter
-
-？ clearPath
-√ clearPath
-
-？ addAlias
-√ addAlias
-
-？ isAlias
-√ isAlias
-
-？ addParserRegExp
-√ addParserRegExp
-
-？ getDependencies
-√ getDependencies
-
-？ src
+？ src
 √ src
 
-？ getDependenciesArr
-√ getDependenciesArr
 
-？ getBeDependenciesArr
-× getBeDependenciesArr
-
-？ addBeDep
-√ addBeDep
-
-？ delBeDep
-√ delBeDep
-
-？ createJsonFile
-√ createJsonFile
-
-
-全部:13  通过:12 未通过: 1
-
-----错误----
-getBeDependenciesArr
-1: 判断错误,返回值:[]
-----错误----
-
+全部:1  通过:1 未通过: 0
 ______________________________  
