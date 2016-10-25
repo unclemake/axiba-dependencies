@@ -102,8 +102,13 @@ exports.default = new class AxibaDependencies {
             if (!dependenciesModel) {
                 return isCb ? callback(null, file) : callback();
             }
-            this.delByPath(dependenciesModel.path);
-            this.dependenciesArray.push(dependenciesModel);
+            if (this.delByPath(dependenciesModel.path)) {
+                this.dependenciesArray.push(dependenciesModel);
+            }
+            else {
+                let obj = this.getDependenciesByPath(dependenciesModel.path);
+                obj.dep = dependenciesModel.dep;
+            }
             dependenciesModel.dep.forEach(value => {
                 this.addBeDep(value, dependenciesModel.path);
             });
@@ -120,8 +125,11 @@ exports.default = new class AxibaDependencies {
             depObjectOld.dep.forEach(value => this.delBeDep(value, path));
             if (depObjectOld.beDep.length === 0) {
                 this.dependenciesArray.splice(this.dependenciesArray.findIndex(value => value === depObjectOld), 1);
+                return true;
             }
+            return false;
         }
+        return true;
     }
     /**
      * 删除 path 的beDep 被依赖

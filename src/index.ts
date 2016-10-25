@@ -71,7 +71,7 @@ export default new class AxibaDependencies {
         {
             extname: '.less',
             parserRegExpList: [{
-                regExp: /@import +["'](.+?)['"]/g,
+                regExp: /@import +['"](.+?)['"]/g,
                 match: '$1'
             }],
             completionExtname: true
@@ -163,8 +163,13 @@ export default new class AxibaDependencies {
                 return isCb ? callback(null, file) : callback();
             }
 
-            this.delByPath(dependenciesModel.path);
-            this.dependenciesArray.push(dependenciesModel);
+            if (this.delByPath(dependenciesModel.path)) {
+                this.dependenciesArray.push(dependenciesModel);
+            } else {
+                let obj = this.getDependenciesByPath(dependenciesModel.path);
+                obj.dep = dependenciesModel.dep;
+            }
+
             dependenciesModel.dep.forEach(value => {
                 this.addBeDep(value, dependenciesModel.path);
             });
@@ -177,7 +182,7 @@ export default new class AxibaDependencies {
      * 根据path删除依赖
      * @param  {string} path
      */
-    delByPath(path: string) {
+    delByPath(path: string): boolean {
         let depObjectOld = this.dependenciesArray.find(value => value.path === this.clearPath(path));
 
         if (depObjectOld) {
@@ -185,8 +190,11 @@ export default new class AxibaDependencies {
 
             if (depObjectOld.beDep.length === 0) {
                 this.dependenciesArray.splice(this.dependenciesArray.findIndex(value => value === depObjectOld), 1);
+                return true;
             }
+            return false;
         }
+        return true;
     }
 
 
@@ -361,6 +369,44 @@ export default new class AxibaDependencies {
             md5: md5(content)
         }
     }
+
+
+
+    /**
+         * 根据文件流获取依赖对象
+         * @param stream nodejs文件流
+         */
+    changeMd5Name(file: gulpUtil.File) {
+        file.extname = ph.extname(file.path);
+
+        let dependenciesConfig = this.confing.find(value => {
+            let extnameAlias = value.extnameAlias && value.extnameAlias.find(value => value == file.extname);
+            return value.extname == file.extname || !!extnameAlias;
+        });
+
+        if (!dependenciesConfig) return;
+
+        let content = file.contents.toString();
+        let depArr: string[] = [];
+
+
+        let depObj = this.getDependenciesByPath(file.path);
+
+        dependenciesConfig.parserRegExpList.forEach(value => {
+            let match = value.match.split('$').filter(value => !!value).map(value => Number(value));
+
+            content = content.replace(value.regExp, function (word, $1, $2, $3, $4, $5) {
+                let path = arguments[match[0]];
+                let extname = ph.extname(path);
+                let newPath = path.replace(RegExp(extname + '$'), depObj.md5 + '.' + extname)
+                return word.replace(path, );
+            } as any);
+
+        });
+
+        return file;
+    }
+
 
 
     /**
