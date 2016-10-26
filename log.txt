@@ -1,9 +1,42 @@
-？ src
+？ match
+√ match
+
+？ clearPathParameter
+√ clearPathParameter
+
+？ clearPath
+√ clearPath
+
+？ addAlias
+√ addAlias
+
+？ isAlias
+√ isAlias
+
+？ addParserRegExp
+√ addParserRegExp
+
+？ getDependencies
+√ getDependencies
+
+？ src
 √ src
+
+？ getDependenciesArr
+√ getDependenciesArr
+
+？ getBeDependenciesArr
+√ getBeDependenciesArr
+
+？ addBeDep
+√ addBeDep
+
+？ delBeDep
+√ delBeDep
 
 ？ createJsonFile
 √ createJsonFile
 
 
-全部:2  通过:2 未通过: 0
+全部:13  通过:13 未通过: 0
 ______________________________  

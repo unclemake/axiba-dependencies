@@ -1,4 +1,12 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator.throw(value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments)).next());
+    });
+};
 const gulp = require('gulp');
 const through = require('through2');
 const ph = require('path');
@@ -21,7 +29,7 @@ exports.default = new class AxibaDependencies {
             {
                 extname: '.less',
                 parserRegExpList: [{
-                        regExp: /@import +["'](.+?)['"]/g,
+                        regExp: /@import +['"](.+?)['"]/g,
                         match: '$1'
                     }],
                 completionExtname: true
@@ -97,7 +105,7 @@ exports.default = new class AxibaDependencies {
      * 数据流 分析
      */
     readWriteStream(isCb = false) {
-        return through.obj((file, enc, callback) => {
+        return through.obj((file, enc, callback) => __awaiter(this, void 0, void 0, function* () {
             let dependenciesModel = this.getDependencies(file);
             if (!dependenciesModel) {
                 return isCb ? callback(null, file) : callback();
@@ -106,14 +114,14 @@ exports.default = new class AxibaDependencies {
                 this.dependenciesArray.push(dependenciesModel);
             }
             else {
-                let obj = this.getDependenciesByPath(dependenciesModel.path);
+                let obj = yield this.getDependenciesByPath(dependenciesModel.path);
                 obj.dep = dependenciesModel.dep;
             }
             dependenciesModel.dep.forEach(value => {
                 this.addBeDep(value, dependenciesModel.path);
             });
             return isCb ? callback(null, file) : callback();
-        });
+        }));
     }
     /**
      * 根据path删除依赖
@@ -196,34 +204,45 @@ exports.default = new class AxibaDependencies {
      * @returns string[]
      */
     getBeDependenciesArr(path, bl = true) {
-        bl && (this.recordGetBeDependenciesPath = []);
-        // 如果已经查找过 跳出
-        if (this.recordGetBeDependenciesPath.find(value => value == path)) {
-            return [];
-        }
-        this.recordGetBeDependenciesPath.push(path);
-        path = this.clearPath(path);
-        let depArr = [];
-        let depObject = this.dependenciesArray.find(value => value.path == path);
-        if (depObject) {
-            depArr = depArr.concat(depObject.beDep);
-            for (let key in depObject.beDep) {
-                let element = depObject.beDep[key];
-                depArr = depArr.concat(this.getBeDependenciesArr(element, false));
+        return __awaiter(this, void 0, Promise, function* () {
+            bl && (this.recordGetBeDependenciesPath = []);
+            // 如果已经查找过 跳出
+            if (this.recordGetBeDependenciesPath.find(value => value == path)) {
+                return [];
             }
-        }
-        if (bl) {
-            return [...new Set(depArr)];
-        }
-        return depArr;
+            this.recordGetBeDependenciesPath.push(path);
+            path = this.clearPath(path);
+            let depArr = [];
+            let depObject = yield this.getDependenciesByPath(path);
+            if (depObject) {
+                depArr = depArr.concat(depObject.beDep);
+                for (let key in depObject.beDep) {
+                    let element = depObject.beDep[key];
+                    depArr = depArr.concat(this.getBeDependenciesArr(element, false));
+                }
+            }
+            if (bl) {
+                return [...new Set(depArr)];
+            }
+            return depArr;
+        });
     }
     /**
      * 根据path获取依赖
      * @param path
      */
     getDependenciesByPath(path) {
-        path = this.clearPath(path);
-        return this.dependenciesArray.find(value => value.path === path);
+        return __awaiter(this, void 0, Promise, function* () {
+            path = this.clearPath(path);
+            let depArr = this.dependenciesArray.find(value => value.path === path);
+            if (depArr) {
+                return depArr;
+            }
+            else {
+                yield this.src(path);
+                return this.dependenciesArray.find(value => value.path === path);
+            }
+        });
     }
     /**
      * 根据文件流获取依赖对象
@@ -267,6 +286,34 @@ exports.default = new class AxibaDependencies {
             beDep: [],
             md5: md5(content)
         };
+    }
+    /**
+         * 根据文件流获取依赖对象
+         * @param stream nodejs文件流
+         */
+    changeMd5Name(file) {
+        return __awaiter(this, void 0, void 0, function* () {
+            file.extname = ph.extname(file.path);
+            let dependenciesConfig = this.confing.find(value => {
+                let extnameAlias = value.extnameAlias && value.extnameAlias.find(value => value == file.extname);
+                return value.extname == file.extname || !!extnameAlias;
+            });
+            if (!dependenciesConfig)
+                return;
+            let content = file.contents.toString();
+            let depArr = [];
+            let depObj = yield this.getDependenciesByPath(file.path);
+            dependenciesConfig.parserRegExpList.forEach(value => {
+                let match = value.match.split('$').filter(value => !!value).map(value => Number(value));
+                content = content.replace(value.regExp, function (word, $1, $2, $3, $4, $5) {
+                    let path = arguments[match[0]];
+                    let extname = ph.extname(path);
+                    let newPath = path.replace(RegExp(extname + '$'), depObj.md5 + '.' + extname);
+                    return word.replace(path);
+                });
+            });
+            return file;
+        });
     }
     /**
      * 获取匹配字段

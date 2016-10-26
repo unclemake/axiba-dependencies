@@ -156,7 +156,7 @@ export default new class AxibaDependencies {
      * 数据流 分析
      */
     readWriteStream(isCb = false): stream.Transform {
-        return through.obj((file: gulpUtil.File, enc, callback) => {
+        return through.obj(async (file: gulpUtil.File, enc, callback) => {
             let dependenciesModel = this.getDependencies(file);
 
             if (!dependenciesModel) {
@@ -166,7 +166,7 @@ export default new class AxibaDependencies {
             if (this.delByPath(dependenciesModel.path)) {
                 this.dependenciesArray.push(dependenciesModel);
             } else {
-                let obj = this.getDependenciesByPath(dependenciesModel.path);
+                let obj = await this.getDependenciesByPath(dependenciesModel.path);
                 obj.dep = dependenciesModel.dep;
             }
 
@@ -277,7 +277,7 @@ export default new class AxibaDependencies {
      * @param  {boolean} bl 是否是首个路劲
      * @returns string[]
      */
-    getBeDependenciesArr(path: string, bl = true): string[] {
+    async  getBeDependenciesArr(path: string, bl = true): Promise<string[]> {
         bl && (this.recordGetBeDependenciesPath = []);
 
         // 如果已经查找过 跳出
@@ -289,7 +289,7 @@ export default new class AxibaDependencies {
         path = this.clearPath(path);
         let depArr = [];
 
-        let depObject = this.dependenciesArray.find(value => value.path == path);
+        let depObject = await this.getDependenciesByPath(path);
 
         if (depObject) {
             depArr = depArr.concat(depObject.beDep);
@@ -310,9 +310,15 @@ export default new class AxibaDependencies {
      * 根据path获取依赖
      * @param path
      */
-    getDependenciesByPath(path: string): DependenciesModel {
+    async getDependenciesByPath(path: string): Promise<DependenciesModel> {
         path = this.clearPath(path);
-        return this.dependenciesArray.find(value => value.path === path);
+        let depArr = this.dependenciesArray.find(value => value.path === path);
+        if (depArr) {
+            return depArr;
+        } else {
+            await this.src(path);
+            return this.dependenciesArray.find(value => value.path === path);
+        }
     }
 
 
@@ -376,7 +382,7 @@ export default new class AxibaDependencies {
          * 根据文件流获取依赖对象
          * @param stream nodejs文件流
          */
-    changeMd5Name(file: gulpUtil.File) {
+    async changeMd5Name(file: gulpUtil.File) {
         file.extname = ph.extname(file.path);
 
         let dependenciesConfig = this.confing.find(value => {
@@ -390,7 +396,7 @@ export default new class AxibaDependencies {
         let depArr: string[] = [];
 
 
-        let depObj = this.getDependenciesByPath(file.path);
+        let depObj = await this.getDependenciesByPath(file.path);
 
         dependenciesConfig.parserRegExpList.forEach(value => {
             let match = value.match.split('$').filter(value => !!value).map(value => Number(value));
@@ -504,3 +510,4 @@ export default new class AxibaDependencies {
 
 
 }
+
