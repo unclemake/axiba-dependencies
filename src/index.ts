@@ -104,7 +104,6 @@ export default new class AxibaDependencies {
     ]
 
     extNameList = ['.less', '.js', '.css', '.ts']
-
     /**
        * 判断是否是别名路径
        * @param  {string} path

@@ -204,7 +204,7 @@ exports.default = new class AxibaDependencies {
      * @returns string[]
      */
     getBeDependenciesArr(path, bl = true) {
-        return __awaiter(this, void 0, Promise, function* () {
+        return __awaiter(this, void 0, void 0, function* () {
             bl && (this.recordGetBeDependenciesPath = []);
             // 如果已经查找过 跳出
             if (this.recordGetBeDependenciesPath.find(value => value == path)) {
@@ -232,7 +232,7 @@ exports.default = new class AxibaDependencies {
      * @param path
      */
     getDependenciesByPath(path) {
-        return __awaiter(this, void 0, Promise, function* () {
+        return __awaiter(this, void 0, void 0, function* () {
             path = this.clearPath(path);
             let depArr = this.dependenciesArray.find(value => value.path === path);
             if (depArr) {
@@ -399,5 +399,4 @@ exports.default = new class AxibaDependencies {
     }
 }
 ;
-
 //# sourceMappingURL=index.js.map
