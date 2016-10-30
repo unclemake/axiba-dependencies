@@ -67,11 +67,14 @@ export default new class AxibaDependencies {
     /** 
     * 配置
     */
-    confing: DependenciesConfig[] = [
+    config: DependenciesConfig[] = [
         {
             extname: '.less',
             parserRegExpList: [{
                 regExp: /@import +['"](.+?)['"]/g,
+                match: '$1'
+            }, {
+                regExp: /@import +url\(['"](.+?)['"]/g,
                 match: '$1'
             }],
             completionExtname: true
@@ -271,7 +274,7 @@ export default new class AxibaDependencies {
     /** 记录getDependenciesArr编列扫描了哪些path 防止死循环 */
     recordGetBeDependenciesPath: Array<string>;
     /**
-     * 根据路劲获取被依赖数组
+     * 根据路劲获取被依赖数组 所有文件
      * @param  {string} path 路劲
      * @param  {boolean} bl 是否是首个路劲
      * @returns string[]
@@ -328,8 +331,8 @@ export default new class AxibaDependencies {
      */
     getDependencies(file: gulpUtil.File): DependenciesModel {
         file.extname = ph.extname(file.path);
-
-        let dependenciesConfig = this.confing.find(value => {
+        let dirname = ph.dirname(file.path);
+        let dependenciesConfig = this.config.find(value => {
             let extnameAlias = value.extnameAlias && value.extnameAlias.find(value => value == file.extname);
             return value.extname == file.extname || !!extnameAlias;
         });
@@ -349,11 +352,16 @@ export default new class AxibaDependencies {
             value = this.clearPath(value);
 
             if (this.isAlias(value) && dependenciesConfig.haveAlias) {
-                return value;
+                let depFilePath = ph.join(dirname, value + '.js');
+                if (fs.existsSync(depFilePath)) {
+                    return this.clearPath(depFilePath);
+                } else {
+                    return value;
+                }
             }
 
             if (dependenciesConfig.haveAlias && /[^\.\/]/g.test(value[0])) {
-                value = this.clearPath(ph.join('node_modules/', value))
+                // value = this.clearPath(ph.join('node_modules/', value))
             } else {
                 value = this.clearPath(ph.join(ph.dirname(file.path), value));
             }
@@ -384,7 +392,7 @@ export default new class AxibaDependencies {
     async changeMd5Name(file: gulpUtil.File) {
         file.extname = ph.extname(file.path);
 
-        let dependenciesConfig = this.confing.find(value => {
+        let dependenciesConfig = this.config.find(value => {
             let extnameAlias = value.extnameAlias && value.extnameAlias.find(value => value == file.extname);
             return value.extname == file.extname || !!extnameAlias;
         });
@@ -441,7 +449,7 @@ export default new class AxibaDependencies {
      * @param match 匹配 $1$2
      */
     addParserRegExp(extname: string, regExp: RegExp, match?: string): void {
-        let dependenciesConfig = this.confing.find(value => value.extname == extname);
+        let dependenciesConfig = this.config.find(value => value.extname == extname);
 
         if (dependenciesConfig) {
             dependenciesConfig.parserRegExpList.push({
@@ -449,7 +457,7 @@ export default new class AxibaDependencies {
                 match: match
             });
         } else {
-            this.confing.push({
+            this.config.push({
                 extname: extname,
                 parserRegExpList: [{
                     regExp: regExp,
@@ -467,13 +475,13 @@ export default new class AxibaDependencies {
      * @param alias 别名
      */
     addAlias(extname: string, alias: string): void {
-        let dependenciesConfig = this.confing.find(value => value.extname == extname);
+        let dependenciesConfig = this.config.find(value => value.extname == extname);
 
         if (dependenciesConfig) {
             dependenciesConfig.extnameAlias = dependenciesConfig.extnameAlias || [];
             dependenciesConfig.extnameAlias.push(alias);
         } else {
-            this.confing.push({
+            this.config.push({
                 extname: extname,
                 parserRegExpList: [],
                 extnameAlias: [alias]

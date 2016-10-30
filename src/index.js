@@ -25,11 +25,14 @@ exports.default = new class AxibaDependencies {
         /**
         * 配置
         */
-        this.confing = [
+        this.config = [
             {
                 extname: '.less',
                 parserRegExpList: [{
                         regExp: /@import +['"](.+?)['"]/g,
+                        match: '$1'
+                    }, {
+                        regExp: /@import +url\(['"](.+?)['"]/g,
                         match: '$1'
                     }],
                 completionExtname: true
@@ -198,13 +201,13 @@ exports.default = new class AxibaDependencies {
         return depArr;
     }
     /**
-     * 根据路劲获取被依赖数组
+     * 根据路劲获取被依赖数组 所有文件
      * @param  {string} path 路劲
      * @param  {boolean} bl 是否是首个路劲
      * @returns string[]
      */
     getBeDependenciesArr(path, bl = true) {
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter(this, void 0, Promise, function* () {
             bl && (this.recordGetBeDependenciesPath = []);
             // 如果已经查找过 跳出
             if (this.recordGetBeDependenciesPath.find(value => value == path)) {
@@ -232,7 +235,7 @@ exports.default = new class AxibaDependencies {
      * @param path
      */
     getDependenciesByPath(path) {
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter(this, void 0, Promise, function* () {
             path = this.clearPath(path);
             let depArr = this.dependenciesArray.find(value => value.path === path);
             if (depArr) {
@@ -250,7 +253,8 @@ exports.default = new class AxibaDependencies {
      */
     getDependencies(file) {
         file.extname = ph.extname(file.path);
-        let dependenciesConfig = this.confing.find(value => {
+        let dirname = ph.dirname(file.path);
+        let dependenciesConfig = this.config.find(value => {
             let extnameAlias = value.extnameAlias && value.extnameAlias.find(value => value == file.extname);
             return value.extname == file.extname || !!extnameAlias;
         });
@@ -266,10 +270,15 @@ exports.default = new class AxibaDependencies {
         depArr = depArr.map(value => {
             value = this.clearPath(value);
             if (this.isAlias(value) && dependenciesConfig.haveAlias) {
-                return value;
+                let depFilePath = ph.join(dirname, value + '.js');
+                if (fs.existsSync(depFilePath)) {
+                    return this.clearPath(depFilePath);
+                }
+                else {
+                    return value;
+                }
             }
             if (dependenciesConfig.haveAlias && /[^\.\/]/g.test(value[0])) {
-                value = this.clearPath(ph.join('node_modules/', value));
             }
             else {
                 value = this.clearPath(ph.join(ph.dirname(file.path), value));
@@ -294,7 +303,7 @@ exports.default = new class AxibaDependencies {
     changeMd5Name(file) {
         return __awaiter(this, void 0, void 0, function* () {
             file.extname = ph.extname(file.path);
-            let dependenciesConfig = this.confing.find(value => {
+            let dependenciesConfig = this.config.find(value => {
                 let extnameAlias = value.extnameAlias && value.extnameAlias.find(value => value == file.extname);
                 return value.extname == file.extname || !!extnameAlias;
             });
@@ -340,7 +349,7 @@ exports.default = new class AxibaDependencies {
      * @param match 匹配 $1$2
      */
     addParserRegExp(extname, regExp, match) {
-        let dependenciesConfig = this.confing.find(value => value.extname == extname);
+        let dependenciesConfig = this.config.find(value => value.extname == extname);
         if (dependenciesConfig) {
             dependenciesConfig.parserRegExpList.push({
                 regExp: regExp,
@@ -348,7 +357,7 @@ exports.default = new class AxibaDependencies {
             });
         }
         else {
-            this.confing.push({
+            this.config.push({
                 extname: extname,
                 parserRegExpList: [{
                         regExp: regExp,
@@ -364,13 +373,13 @@ exports.default = new class AxibaDependencies {
      * @param alias 别名
      */
     addAlias(extname, alias) {
-        let dependenciesConfig = this.confing.find(value => value.extname == extname);
+        let dependenciesConfig = this.config.find(value => value.extname == extname);
         if (dependenciesConfig) {
             dependenciesConfig.extnameAlias = dependenciesConfig.extnameAlias || [];
             dependenciesConfig.extnameAlias.push(alias);
         }
         else {
-            this.confing.push({
+            this.config.push({
                 extname: extname,
                 parserRegExpList: [],
                 extnameAlias: [alias]
@@ -399,4 +408,5 @@ exports.default = new class AxibaDependencies {
     }
 }
 ;
+
 //# sourceMappingURL=index.js.map
