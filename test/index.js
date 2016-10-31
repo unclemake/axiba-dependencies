@@ -1,6 +1,8 @@
 "use strict";
+const index_1 = require('../src/index');
 const gulp = require('gulp');
 gulp.src("assets/pages/main/index.tsx", { base: 'assets' }).pipe(gulp.dest('./dist'));
+console.log(index_1.default.clearPath('./Event'));
 // Dependencies.dependenciesArray = [
 // ]
 // describeClass('依赖分析', Dependencies, () => {
@@ -12,13 +14,14 @@ gulp.src("assets/pages/main/index.tsx", { base: 'assets' }).pipe(gulp.dest('./di
 //     itClass('clearPathParameter', () => {
 //         itAdd(['/ddd/dfdf/dfdf?ddd=1'], value => value == '/ddd/dfdf/dfdf');
 //     });
-//     itClass('clearPath', () => {
-//         let fun = value => value == '/eest/e.t';
-//         itAdd(['//eest//e.t'], fun);
-//         itAdd(['\\eest\\e.t?123123'], fun);
-//         itAdd(['./ee./st/e.t?sss=123123'], value => value == './ee/st/e.t');
-//         itAdd(['../ee./st/e.t?sss=123123'], value => value == '../ee/st/e.t');
-//     });
+// itClass('clearPath', () => {
+//     let fun = value => value == '/eest/e.t';
+//     itAdd(['//eest//e.t'], fun);
+//     itAdd(['\\eest\\e.t?123123'], fun);
+//     itAdd(['./ee./st/e.t?sss=123123'], value => value == './ee/st/e.t');
+//     itAdd(['./ee./st/e.t?sss=123123'], value => value == './ee/st/e.t');
+//     itAdd(['../ee./st/e.t?sss=123123'], value => value == '../ee/st/e.t');
+// });
 //     itClass('addAlias', () => {
 //         itAdd(['.less', '_less'], value => Dependencies.config.find(value => value.extname == '.less').extnameAlias[0] == '_less');
 //     });

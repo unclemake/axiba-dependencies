@@ -10,7 +10,7 @@ gulp.src("assets/pages/main/index.tsx", { base: 'assets' }).pipe(gulp.dest('./di
 
 
 
-
+console.log(Dependencies.clearPath('./Event'));
 
 // Dependencies.dependenciesArray = [
 // ]
@@ -27,13 +27,14 @@ gulp.src("assets/pages/main/index.tsx", { base: 'assets' }).pipe(gulp.dest('./di
 //         itAdd(['/ddd/dfdf/dfdf?ddd=1'], value => value == '/ddd/dfdf/dfdf');
 //     });
 
-//     itClass('clearPath', () => {
-//         let fun = value => value == '/eest/e.t';
-//         itAdd(['//eest//e.t'], fun);
-//         itAdd(['\\eest\\e.t?123123'], fun);
-//         itAdd(['./ee./st/e.t?sss=123123'], value => value == './ee/st/e.t');
-//         itAdd(['../ee./st/e.t?sss=123123'], value => value == '../ee/st/e.t');
-//     });
+// itClass('clearPath', () => {
+//     let fun = value => value == '/eest/e.t';
+//     itAdd(['//eest//e.t'], fun);
+//     itAdd(['\\eest\\e.t?123123'], fun);
+//     itAdd(['./ee./st/e.t?sss=123123'], value => value == './ee/st/e.t');
+//     itAdd(['./ee./st/e.t?sss=123123'], value => value == './ee/st/e.t');
+//     itAdd(['../ee./st/e.t?sss=123123'], value => value == '../ee/st/e.t');
+// });
 
 
 //     itClass('addAlias', () => {
