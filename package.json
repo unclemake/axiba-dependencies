@@ -5,6 +5,7 @@
   "typings": "src/index.ts",
   "main": "src/index.js",
   "devDependencies": {
+    "antd": "^2.2.0",
     "axiba-unit-test": "^1.0.11",
     "axiba-util": "^1.0.10",
     "gulp": "^3.9.1",

@@ -109,6 +109,9 @@ exports.default = new class AxibaDependencies {
      */
     readWriteStream(isCb = false) {
         return through.obj((file, enc, callback) => __awaiter(this, void 0, void 0, function* () {
+            if (!file.contents) {
+                callback();
+            }
             let dependenciesModel = this.getDependencies(file);
             if (!dependenciesModel) {
                 return isCb ? callback(null, file) : callback();

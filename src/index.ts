@@ -159,6 +159,11 @@ export default new class AxibaDependencies {
      */
     readWriteStream(isCb = false): stream.Transform {
         return through.obj(async (file: gulpUtil.File, enc, callback) => {
+
+            if (!file.contents) {
+                callback();
+            }
+
             let dependenciesModel = this.getDependencies(file);
 
             if (!dependenciesModel) {
