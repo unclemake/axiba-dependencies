@@ -40,8 +40,8 @@ export interface DependenciesConfig {
     extname: string
 
     /**
-   * 解析正则列表
-   */
+     * 解析正则列表
+     */
     parserRegExpList: {
         regExp: RegExp,
         match: string
@@ -62,7 +62,7 @@ export interface DependenciesConfig {
 /**
  * 依赖
  */
-export default new class AxibaDependencies {
+class AxibaDependencies {
 
     /** 
     * 配置
@@ -77,7 +77,6 @@ export default new class AxibaDependencies {
                 regExp: /@import +url\(['"](.+?)['"]/g,
                 match: '$1'
             }],
-            completionExtname: true
         },
         {
             extname: '.ts',
@@ -91,7 +90,17 @@ export default new class AxibaDependencies {
                 regExp: /import +["'](.+?)["']/g,
                 match: '$1'
             }],
-            completionExtname: true,
+            haveAlias: true
+        },
+        {
+            extname: '.tsx',
+            parserRegExpList: [{
+                regExp: /import .+ from +["'](.+?)["']/g,
+                match: '$1'
+            }, {
+                regExp: /import +["'](.+?)["']/g,
+                match: '$1'
+            }],
             haveAlias: true
         },
         {
@@ -101,19 +110,18 @@ export default new class AxibaDependencies {
                 match: '$1'
             }],
             extnameAlias: [],
-            completionExtname: true,
             haveAlias: true
         }
     ]
 
-    extNameList = ['.less', '.js', '.css', '.ts']
+    extNameList = ['.less', '.js', '.css', '.ts', '.tsx']
     /**
-       * 判断是否是别名路径
-       * @param  {string} path
-       */
+     * 判断是否是别名路径
+     * @param  {string} path
+     */
     isAlias(path: string) {
         let extname = ph.extname(path);
-        return !path.match(/[\/\.]/g) && this.extNameList.indexOf(extname) === -1;
+        return !!path.match(/^[^\/\.]/g) && this.extNameList.indexOf(extname) === -1;
     }
 
 
@@ -356,6 +364,10 @@ export default new class AxibaDependencies {
         depArr = depArr.map(value => {
             value = this.clearPath(value);
 
+            if (value == 'config.js') {
+                let a = 1;
+            }
+
             if (this.isAlias(value) && dependenciesConfig.haveAlias) {
                 let depFilePath = ph.join(dirname, value + '.js');
                 if (fs.existsSync(depFilePath)) {
@@ -365,18 +377,17 @@ export default new class AxibaDependencies {
                 }
             }
 
-            if (dependenciesConfig.haveAlias && /[^\.\/]/g.test(value[0])) {
-                // value = this.clearPath(ph.join('node_modules/', value))
-            } else {
-                value = this.clearPath(ph.join(ph.dirname(file.path), value));
-            }
 
+            let path = this.clearPath(ph.join(ph.dirname(file.path), value));
             //补后缀
-            if (dependenciesConfig.completionExtname) {
-                value = ph.extname(value) && this.extNameList.indexOf(ph.extname(value)) !== -1 ? value : value + dependenciesConfig.extname;
+            path = ph.extname(value) && this.extNameList.indexOf(ph.extname(value)) !== -1 ? value : value + dependenciesConfig.extname;
+
+            if (fs.existsSync(path)) {
+                return path;
+            } else {
+                return value;
             }
 
-            return value;
         });
 
 
@@ -391,9 +402,9 @@ export default new class AxibaDependencies {
 
 
     /**
-         * 根据文件流获取依赖对象
-         * @param stream nodejs文件流
-         */
+     * 根据文件流获取依赖对象
+     * @param stream nodejs文件流
+     */
     async changeMd5Name(file: gulpUtil.File) {
         file.extname = ph.extname(file.path);
 
@@ -501,7 +512,8 @@ export default new class AxibaDependencies {
      */
     clearPath(path: string) {
         if (path.indexOf(process.cwd()) == 0) {
-            path = path.replace(process.cwd() + '\\', '');
+            path = path.replace(process.cwd(), '');
+            path = path.replace(/^\\/g, '').replace(/^\//g, '');
         }
 
         path = path.replace(/\\/g, '/')
@@ -523,3 +535,4 @@ export default new class AxibaDependencies {
 
 }
 
+export default new AxibaDependencies();

@@ -1,9 +1,21 @@
-？ src
+？ clearPath
+√ clearPath
+
+？ isAlias
+× isAlias
+
+？ src
 √ src
 
 ？ createJsonFile
 √ createJsonFile
 
 
-全部:2  通过:2 未通过: 0
+全部:4  通过:3 未通过: 1
+
+----错误----
+isAlias
+2: 判断错误,返回值:true
+----错误----
+
 ______________________________  

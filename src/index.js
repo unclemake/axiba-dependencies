@@ -19,8 +19,10 @@ try {
 catch (error) {
     json = [];
 }
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = new class AxibaDependencies {
+/**
+ * 依赖
+ */
+class AxibaDependencies {
     constructor() {
         /**
         * 配置
@@ -35,7 +37,6 @@ exports.default = new class AxibaDependencies {
                         regExp: /@import +url\(['"](.+?)['"]/g,
                         match: '$1'
                     }],
-                completionExtname: true
             },
             {
                 extname: '.ts',
@@ -49,7 +50,17 @@ exports.default = new class AxibaDependencies {
                         regExp: /import +["'](.+?)["']/g,
                         match: '$1'
                     }],
-                completionExtname: true,
+                haveAlias: true
+            },
+            {
+                extname: '.tsx',
+                parserRegExpList: [{
+                        regExp: /import .+ from +["'](.+?)["']/g,
+                        match: '$1'
+                    }, {
+                        regExp: /import +["'](.+?)["']/g,
+                        match: '$1'
+                    }],
                 haveAlias: true
             },
             {
@@ -59,23 +70,22 @@ exports.default = new class AxibaDependencies {
                         match: '$1'
                     }],
                 extnameAlias: [],
-                completionExtname: true,
                 haveAlias: true
             }
         ];
-        this.extNameList = ['.less', '.js', '.css', '.ts'];
+        this.extNameList = ['.less', '.js', '.css', '.ts', '.tsx'];
         /**
         * 临时依赖列表
         */
         this.dependenciesArray = json;
     }
     /**
-       * 判断是否是别名路径
-       * @param  {string} path
-       */
+     * 判断是否是别名路径
+     * @param  {string} path
+     */
     isAlias(path) {
         let extname = ph.extname(path);
-        return !path.match(/[\/\.]/g) && this.extNameList.indexOf(extname) === -1;
+        return !!path.match(/^[^\/\.]/g) && this.extNameList.indexOf(extname) === -1;
     }
     /**
     * 根据glob路径 扫描依赖
@@ -272,6 +282,9 @@ exports.default = new class AxibaDependencies {
         });
         depArr = depArr.map(value => {
             value = this.clearPath(value);
+            if (value == 'config.js') {
+                let a = 1;
+            }
             if (this.isAlias(value) && dependenciesConfig.haveAlias) {
                 let depFilePath = ph.join(dirname, value + '.js');
                 if (fs.existsSync(depFilePath)) {
@@ -281,16 +294,15 @@ exports.default = new class AxibaDependencies {
                     return value;
                 }
             }
-            if (dependenciesConfig.haveAlias && /[^\.\/]/g.test(value[0])) {
+            let path = this.clearPath(ph.join(ph.dirname(file.path), value));
+            //补后缀
+            path = ph.extname(value) && this.extNameList.indexOf(ph.extname(value)) !== -1 ? value : value + dependenciesConfig.extname;
+            if (fs.existsSync(path)) {
+                return path;
             }
             else {
-                value = this.clearPath(ph.join(ph.dirname(file.path), value));
+                return value;
             }
-            //补后缀
-            if (dependenciesConfig.completionExtname) {
-                value = ph.extname(value) && this.extNameList.indexOf(ph.extname(value)) !== -1 ? value : value + dependenciesConfig.extname;
-            }
-            return value;
         });
         return {
             path: this.clearPath(file.path),
@@ -300,9 +312,9 @@ exports.default = new class AxibaDependencies {
         };
     }
     /**
-         * 根据文件流获取依赖对象
-         * @param stream nodejs文件流
-         */
+     * 根据文件流获取依赖对象
+     * @param stream nodejs文件流
+     */
     changeMd5Name(file) {
         return __awaiter(this, void 0, void 0, function* () {
             file.extname = ph.extname(file.path);
@@ -395,7 +407,8 @@ exports.default = new class AxibaDependencies {
      */
     clearPath(path) {
         if (path.indexOf(process.cwd()) == 0) {
-            path = path.replace(process.cwd() + '\\', '');
+            path = path.replace(process.cwd(), '');
+            path = path.replace(/^\\/g, '').replace(/^\//g, '');
         }
         path = path.replace(/\\/g, '/')
             .replace(/\/\//g, '/')
@@ -410,6 +423,7 @@ exports.default = new class AxibaDependencies {
         return path.replace(/\?.+/g, '').replace(/#.+/g, '');
     }
 }
-;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = new AxibaDependencies();
 
 //# sourceMappingURL=index.js.map

@@ -5,13 +5,6 @@ import * as gulp from 'gulp';
 import Vinyl = require('vinyl');
 
 
-
-gulp.src("assets/pages/main/index.tsx", { base: 'assets' }).pipe(gulp.dest('./dist'));
-
-
-
-console.log(Dependencies.clearPath('./Event'));
-
 // Dependencies.dependenciesArray = [
 // ]
 
@@ -27,25 +20,29 @@ describeClass('依赖分析', Dependencies, () => {
     //         itAdd(['/ddd/dfdf/dfdf?ddd=1'], value => value == '/ddd/dfdf/dfdf');
     //     });
 
-    // itClass('clearPath', () => {
-    //     let fun = value => value == '/eest/e.t';
-    //     itAdd(['//eest//e.t'], fun);
-    //     itAdd(['\\eest\\e.t?123123'], fun);
-    //     itAdd(['./ee./st/e.t?sss=123123'], value => value == './ee/st/e.t');
-    //     itAdd(['./ee./st/e.t?sss=123123'], value => value == './ee/st/e.t');
-    //     itAdd(['../ee./st/e.t?sss=123123'], value => value == '../ee/st/e.t');
-    // });
+    itClass('clearPath', () => {
+        let fun = value => value == '/eest/e.t';
+        itAdd(['//eest//e.t'], fun);
+        itAdd(['\\eest\\e.t?123123'], fun);
+        itAdd(['./ee./st/e.t?sss=123123'], value => value == './ee/st/e.t');
+        itAdd(['./ee./st/e.t?sss=123123'], value => value == './ee/st/e.t');
+        itAdd(['../ee./st/e.t?sss=123123'], value => value == '../ee/st/e.t');
+        itAdd(['./config.js'], value => value == './config.js');
+    });
 
 
     //     itClass('addAlias', () => {
     //         itAdd(['.less', '_less'], value => Dependencies.config.find(value => value.extname == '.less').extnameAlias[0] == '_less');
     //     });
 
-    //     itClass('isAlias', () => {
-    //         itAdd(['sss.less'], value => !value);
-    //         itAdd(['react'], value => value);
-    //         itAdd(['react-deadf'], value => value);
-    //     });
+    itClass('isAlias', () => {
+        // itAdd(['sss.less'], value => !value);
+        // itAdd(['react'], value => value);
+        // itAdd(['react-deadf'], value => value);
+        
+        itAdd(['socket.io-client'], value => value);
+        itAdd(['motion/_zoom'], value => !value);
+    });
 
 
     //     itClass('addParserRegExp', () => {
@@ -122,7 +119,7 @@ describeClass('依赖分析', Dependencies, () => {
         //     return true;
         // }, 900000);
 
-        itAdd(['node_modules/omit.js/**/*.js'], value => {
+        itAdd(['assets/index.js'], value => {
             return true;
         }, 900000);
 
