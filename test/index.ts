@@ -21,12 +21,13 @@ describeClass('依赖分析', Dependencies, () => {
     //     });
 
     itClass('clearPath', () => {
-        let fun = value => value == '/eest/e.t';
+        let fun = value => value == 'eest/e.t';
         itAdd(['//eest//e.t'], fun);
         itAdd(['\\eest\\e.t?123123'], fun);
         itAdd(['./ee./st/e.t?sss=123123'], value => value == './ee/st/e.t');
         itAdd(['./ee./st/e.t?sss=123123'], value => value == './ee/st/e.t');
         itAdd(['../ee./st/e.t?sss=123123'], value => value == '../ee/st/e.t');
+        itAdd([process.cwd() + '/st/e.t?sss=123123'], value => value == 'st/e.t');
         itAdd(['./config.js'], value => value == './config.js');
     });
 
@@ -39,9 +40,9 @@ describeClass('依赖分析', Dependencies, () => {
         // itAdd(['sss.less'], value => !value);
         // itAdd(['react'], value => value);
         // itAdd(['react-deadf'], value => value);
-        
+
         itAdd(['socket.io-client'], value => value);
-        itAdd(['motion/_zoom'], value => !value);
+        itAdd(['motion/_zoom'], value => value);
     });
 
 

@@ -100,6 +100,9 @@ class AxibaDependencies {
             }, {
                 regExp: /import +["'](.+?)["']/g,
                 match: '$1'
+            }, {
+                regExp: /require\(["'](.+?)['"]/g,
+                match: '$1'
             }],
             haveAlias: true
         },
@@ -511,14 +514,18 @@ class AxibaDependencies {
      * @param path
      */
     clearPath(path: string) {
-        if (path.indexOf(process.cwd()) == 0) {
-            path = path.replace(process.cwd(), '');
-            path = path.replace(/^\\/g, '').replace(/^\//g, '');
-        }
 
         path = path.replace(/\\/g, '/')
             .replace(/\/\//g, '/')
-            .replace(/([^\.])\.\//g, '$1/');
+            .replace(/([^\.])\.\//g, '$1/')
+            
+
+        let cwd = process.cwd().replace(/\\/g, '/');
+        if (path.indexOf(cwd) == 0) {
+            path = path.replace(cwd, '');
+        }
+
+        path = path.replace(/^\//g, '');
 
         return this.clearPathParameter(path);
     }

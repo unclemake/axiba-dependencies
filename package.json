@@ -1,11 +1,14 @@
 {
+  "files": [
+    "src/"
+  ],
   "name": "axiba-dependencies",
-  "version": "1.1.1",
+  "version": "0.0.3-dev",
   "description": "",
   "typings": "src/index.ts",
   "main": "src/index.js",
   "devDependencies": {
-    "antd": "^2.2.0",
+    "antd": "2.2.0",
     "axiba-unit-test": "^1.0.11",
     "axiba-util": "^1.1.6",
     "gulp": "^3.9.1",
