@@ -13,13 +13,12 @@ axiba_unit_test_1.describeClass('依赖分析', index_1.default, () => {
     //         itAdd(['/ddd/dfdf/dfdf?ddd=1'], value => value == '/ddd/dfdf/dfdf');
     //     });
     axiba_unit_test_1.itClass('clearPath', () => {
-        let fun = value => value == 'eest/e.t';
+        let fun = value => value == '/eest/e.t';
         axiba_unit_test_1.itAdd(['//eest//e.t'], fun);
         axiba_unit_test_1.itAdd(['\\eest\\e.t?123123'], fun);
         axiba_unit_test_1.itAdd(['./ee./st/e.t?sss=123123'], value => value == './ee/st/e.t');
         axiba_unit_test_1.itAdd(['./ee./st/e.t?sss=123123'], value => value == './ee/st/e.t');
         axiba_unit_test_1.itAdd(['../ee./st/e.t?sss=123123'], value => value == '../ee/st/e.t');
-        axiba_unit_test_1.itAdd([process.cwd() + '/st/e.t?sss=123123'], value => value == 'st/e.t');
         axiba_unit_test_1.itAdd(['./config.js'], value => value == './config.js');
     });
     //     itClass('addAlias', () => {
@@ -30,7 +29,7 @@ axiba_unit_test_1.describeClass('依赖分析', index_1.default, () => {
         // itAdd(['react'], value => value);
         // itAdd(['react-deadf'], value => value);
         axiba_unit_test_1.itAdd(['socket.io-client'], value => value);
-        axiba_unit_test_1.itAdd(['motion/_zoom'], value => value);
+        axiba_unit_test_1.itAdd(['motion/_zoom'], value => !value);
     });
     //     itClass('addParserRegExp', () => {
     //         let reg = /@import (['"])(.+?)(['"])/g;
