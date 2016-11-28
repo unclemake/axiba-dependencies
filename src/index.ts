@@ -174,7 +174,6 @@ class AxibaDependencies {
             if (!file.contents) {
                 callback();
             }
-
             let dependenciesModel = this.getDependencies(file);
 
             if (!dependenciesModel) {
@@ -186,6 +185,7 @@ class AxibaDependencies {
             } else {
                 let obj = await this.getDependenciesByPath(dependenciesModel.path);
                 obj.dep = dependenciesModel.dep;
+                obj.md5 = dependenciesModel.md5;
             }
 
             dependenciesModel.dep.forEach(value => {
@@ -518,7 +518,7 @@ class AxibaDependencies {
         path = path.replace(/\\/g, '/')
             .replace(/\/\//g, '/')
             .replace(/([^\.])\.\//g, '$1/')
-            
+
 
         let cwd = process.cwd().replace(/\\/g, '/');
         if (path.indexOf(cwd) == 0) {
