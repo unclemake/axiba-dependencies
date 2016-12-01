@@ -26,7 +26,11 @@ export interface DependenciesModel {
     //文件被依赖
     beDep: string[],
     //文件名md5
-    md5: string
+    md5: string,
+    //扩展
+    extend: {
+        [key: string]: any
+    }
 }
 
 /** 
@@ -114,6 +118,28 @@ class AxibaDependencies {
             }],
             extnameAlias: [],
             haveAlias: true
+        },
+        {
+            extname: '.css',
+            parserRegExpList: [{
+                regExp: /@import url\(['"](.+?)['"]/g,
+                match: '$1'
+            }],
+            extnameAlias: []
+        },
+        {
+            extname: '.html',
+            parserRegExpList: [{
+                regExp: /src=['"](.+?)['"]/g,
+                match: '$1'
+            }, {
+                regExp: /href=['"](.+?)['"]/g,
+                match: '$1'
+            }, {
+                regExp: /seajs.use\(['"](.+?)['"]/g,
+                match: '$1'
+            }],
+            extnameAlias: []
         }
     ]
 
@@ -244,7 +270,8 @@ class AxibaDependencies {
                 path: path,
                 beDep: [beDep],
                 dep: [],
-                md5: ''
+                md5: '',
+                extend: {}
             })
         }
     }
@@ -398,7 +425,8 @@ class AxibaDependencies {
             path: this.clearPath(file.path),
             dep: [...new Set(depArr)],
             beDep: [],
-            md5: md5(content)
+            md5: md5(content),
+            extend: {}
         }
     }
 

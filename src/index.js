@@ -74,6 +74,28 @@ class AxibaDependencies {
                     }],
                 extnameAlias: [],
                 haveAlias: true
+            },
+            {
+                extname: '.css',
+                parserRegExpList: [{
+                        regExp: /@import url\(['"](.+?)['"]/g,
+                        match: '$1'
+                    }],
+                extnameAlias: []
+            },
+            {
+                extname: '.html',
+                parserRegExpList: [{
+                        regExp: /src=['"](.+?)['"]/g,
+                        match: '$1'
+                    }, {
+                        regExp: /href=['"](.+?)['"]/g,
+                        match: '$1'
+                    }, {
+                        regExp: /seajs.use\(['"](.+?)['"]/g,
+                        match: '$1'
+                    }],
+                extnameAlias: []
             }
         ];
         this.extNameList = ['.less', '.js', '.css', '.ts', '.tsx'];
@@ -185,7 +207,8 @@ class AxibaDependencies {
                 path: path,
                 beDep: [beDep],
                 dep: [],
-                md5: ''
+                md5: '',
+                extend: {}
             });
         }
     }
@@ -312,7 +335,8 @@ class AxibaDependencies {
             path: this.clearPath(file.path),
             dep: [...new Set(depArr)],
             beDep: [],
-            md5: md5(content)
+            md5: md5(content),
+            extend: {}
         };
     }
     /**
