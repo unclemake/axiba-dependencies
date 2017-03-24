@@ -21,6 +21,13 @@ try {
 export interface DependenciesModel {
     //文件路径
     path: string
+    /**
+     * 文件依赖 没有计算文件位置
+     * 
+     * @type {string[]}
+     * @memberOf DependenciesModel
+     */
+    dependent: string[]
     //文件依赖
     dep: string[],
     //文件被依赖
@@ -269,6 +276,7 @@ class AxibaDependencies {
             this.dependenciesArray.push({
                 path: path,
                 beDep: [beDep],
+                dependent: [],
                 dep: [],
                 md5: '',
                 extend: {}
@@ -366,6 +374,18 @@ class AxibaDependencies {
         }
     }
 
+    /**
+     * 根据文件路径获取依赖
+     * 
+     * @param {string} path
+     * 
+     * @memberOf AxibaDependencies
+     */
+    find(path: string) {
+        path = this.clearPath(path);
+        return this.dependenciesArray.find(value => value.path === path);
+    }
+
 
 
     /**
@@ -391,12 +411,10 @@ class AxibaDependencies {
             depArr = depArr.concat(path);
         });
 
+        let dependentArr: string[] = JSON.parse(JSON.stringify(depArr));
+
         depArr = depArr.map(value => {
             value = this.clearPath(value);
-
-            if (value == 'config.js') {
-                let a = 1;
-            }
 
             if (this.isAlias(value) && dependenciesConfig.haveAlias) {
                 let depFilePath = ph.join(dirname, value + '.js');
@@ -410,7 +428,7 @@ class AxibaDependencies {
 
             let path = this.clearPath(ph.join(ph.dirname(file.path), value));
             //补后缀
-            path = ph.extname(value) && this.extNameList.indexOf(ph.extname(value)) !== -1 ? value : value + dependenciesConfig.extname;
+            path = ph.extname(path) && this.extNameList.indexOf(ph.extname(path)) !== -1 ? path : path + dependenciesConfig.extname;
 
             if (fs.existsSync(path)) {
                 return path;
@@ -424,6 +442,7 @@ class AxibaDependencies {
         return {
             path: this.clearPath(file.path),
             dep: [...new Set(depArr)],
+            dependent: [...new Set(dependentArr)],
             beDep: [],
             md5: md5(content),
             extend: {}
