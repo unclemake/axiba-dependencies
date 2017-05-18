@@ -41,13 +41,16 @@ class AxibaDependencies {
             {
                 extname: '.ts',
                 parserRegExpList: [{
-                        regExp: /require\(["'](.+?)['"]/g,
-                        match: '$1'
-                    }, {
                         regExp: /import .+ from +["'](.+?)["']/g,
                         match: '$1'
                     }, {
+                        regExp: /import +\{[\s\S]+?\} +from +["'](.+?)["']/g,
+                        match: '$1'
+                    }, {
                         regExp: /import +["'](.+?)["']/g,
+                        match: '$1'
+                    }, {
+                        regExp: /require\(["'](.+?)['"]/g,
                         match: '$1'
                     }],
                 haveAlias: true
@@ -56,6 +59,9 @@ class AxibaDependencies {
                 extname: '.tsx',
                 parserRegExpList: [{
                         regExp: /import .+ from +["'](.+?)["']/g,
+                        match: '$1'
+                    }, {
+                        regExp: /import +\{[\s\S]+?\} +from +["'](.+?)["']/g,
                         match: '$1'
                     }, {
                         regExp: /import +["'](.+?)["']/g,
