@@ -3,7 +3,7 @@
     "src/"
   ],
   "name": "axiba-dependencies",
-  "version": "0.0.6-dev",
+  "version": "0.1.0-dev",
   "description": "",
   "typings": "src/index.ts",
   "main": "src/index.js",
